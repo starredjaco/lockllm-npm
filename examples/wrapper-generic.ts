@@ -2,7 +2,7 @@
  * Generic Wrapper Example
  *
  * Shows how to use the generic createClient and createOpenAICompatible
- * functions to work with any provider
+ * functions to work with any of the 17 supported providers
  */
 
 import {
@@ -113,7 +113,7 @@ async function main() {
   // Summary
   // ============================================
   console.log('\n=== Summary ===\n');
-  console.log('You have 3 ways to use LockLLM with any provider:');
+  console.log('You have 3 ways to use LockLLM with any of the 17 supported providers:');
   console.log('');
   console.log('1. Use provider-specific wrappers (easiest):');
   console.log('   import { createGroq, createMistral } from "lockllm"');

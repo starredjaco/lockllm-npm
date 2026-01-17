@@ -63,9 +63,9 @@ Demonstrates how to use the Anthropic SDK with LockLLM protection as a drop-in r
 
 ### 4. Generic Wrapper (`wrapper-generic.ts`)
 
-Shows three ways to use LockLLM with any provider:
+Shows three ways to use LockLLM with any of the 17 supported providers:
 - Using `createOpenAICompatible()` for OpenAI-compatible APIs
-- Using `createClient()` with custom SDKs
+- Using `createClient()` with provider-specific SDKs
 - Using official SDKs directly with `getProxyURL()`
 
 ### 5. All Providers (`wrapper-all-providers.ts`)

@@ -1,7 +1,7 @@
 {
   "name": "@lockllm/sdk",
   "version": "1.0.1",
-  "description": "Enterprise-grade AI security SDK providing real-time protection against prompt injection, jailbreaks, and adversarial attacks. Drop-in replacement for OpenAI, Anthropic, and 15+ providers with zero code changes. Includes REST API, proxy mode, browser extension, and webhook support. Free BYOK model with unlimited scanning.",
+  "description": "Enterprise-grade AI security SDK providing real-time protection against prompt injection, jailbreaks, and adversarial attacks. Drop-in replacement for OpenAI, Anthropic, and 17+ providers with zero code changes. Includes REST API, proxy mode, browser extension, and webhook support. Free BYOK model with unlimited scanning.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",

@@ -42,8 +42,8 @@ The SDK will work out of the box once you install the provider packages you need
 ### Added
 
 #### Universal Provider Support
-- **Generic Wrapper Factory**: Added `createClient()` function to create clients for any LLM provider using their official SDK
-- **OpenAI-Compatible Helper**: Added `createOpenAICompatible()` for easy integration with OpenAI-compatible providers
+- **Generic Wrapper Factory**: Added `createClient()` function to create clients for any of the 17 supported providers using their official SDK
+- **OpenAI-Compatible Helper**: Added `createOpenAICompatible()` for easy integration with the OpenAI-compatible providers (Groq, DeepSeek, Mistral, Perplexity, etc.)
 - **15 New Provider Wrappers**: Pre-configured factory functions for all remaining providers:
   - `createGroq()` - Groq (fast inference)
   - `createDeepSeek()` - DeepSeek (reasoning models)
@@ -67,7 +67,7 @@ The SDK will work out of the box once you install the provider packages you need
 - **Type Export**: Added `ProviderName` type export for better TypeScript support
 
 #### Examples
-- **`examples/wrapper-generic.ts`**: Comprehensive example showing three ways to integrate with any provider
+- **`examples/wrapper-generic.ts`**: Comprehensive example showing three ways to integrate with any of the 17 supported providers
 - **`examples/wrapper-all-providers.ts`**: Complete example demonstrating all 17 providers
 
 #### Documentation
@@ -113,6 +113,6 @@ const client = new OpenAI({
 ```
 
 ### Notes
-- All 15+ providers are now fully supported with multiple integration options
+- All 17+ providers are now fully supported with multiple integration options
 - Zero breaking changes - existing code continues to work
 - Backward compatible with v1.0.0

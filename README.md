@@ -10,7 +10,7 @@
 
 **All-in-One AI Security for LLM Applications**
 
-*Keep control of your AI. Detect prompt injection, jailbreaks, and adversarial attacks in real-time across 15+ providers with zero code changes.*
+*Keep control of your AI. Detect prompt injection, jailbreaks, and adversarial attacks in real-time across 17+ providers with zero code changes.*
 
 [Quick Start](#quick-start) · [Documentation](https://www.lockllm.com/docs) · [Examples](#examples) · [Benchmarks](https://www.lockllm.com) · [API Reference](#api-reference)
 
@@ -26,7 +26,7 @@ LockLLM is a state-of-the-art AI security ecosystem that detects prompt injectio
 
 - **Real-Time Security Scanning** - Analyze every LLM request before execution with minimal latency (<250ms)
 - **Advanced ML Detection** - Models trained on real-world attack patterns for prompt injection and jailbreaks
-- **15+ Provider Support** - Universal coverage across OpenAI, Anthropic, Azure, Bedrock, Gemini, and more
+- **17+ Provider Support** - Universal coverage across OpenAI, Anthropic, Azure, Bedrock, Gemini, and more
 - **Drop-in Integration** - Replace existing SDKs with zero code changes - just change one line
 - **Completely Free** - BYOK (Bring Your Own Key) model with unlimited usage and no rate limits
 - **Privacy by Default** - Your data is never stored, only scanned in-memory and discarded
@@ -73,26 +73,48 @@ LockLLM provides production-ready AI security that integrates seamlessly into yo
 | **Evasion & Obfuscation Detection** | Catch sophisticated obfuscation including Unicode abuse, zero-width characters, and encoding-based attacks |
 | **Multi-Layer Context Analysis** | Analyze prompts across multiple context windows to detect attacks spanning conversation turns |
 | **Token-Level Threat Scoring** | Granular threat assessment identifying which specific parts of input contain malicious patterns |
-| **15+ Provider Support** | OpenAI, Anthropic, Gemini, Azure, Bedrock, Groq, DeepSeek, and more |
+| **17+ Provider Support** | OpenAI, Anthropic, Gemini, Azure, Bedrock, Groq, DeepSeek, and more |
 | **Drop-in Integration** | Replace `new OpenAI()` with `createOpenAI()` - no other changes needed |
 | **TypeScript Native** | Full type safety with comprehensive type definitions and IDE support |
 | **Streaming Compatible** | Works seamlessly with streaming responses from any provider |
 | **Configurable Sensitivity** | Adjust detection thresholds (low/medium/high) per use case |
-| **Custom Endpoints** | Support for self-hosted models, Azure resources, and private clouds |
+| **Custom Endpoints** | Configure custom URLs for any provider (self-hosted, Azure, private clouds) |
 | **Enterprise Privacy** | Provider keys encrypted at rest, prompts never stored |
 | **Production Ready** | Battle-tested with automatic retries, timeouts, and error handling |
 
 ## Installation
 
+Choose your preferred package manager:
 ```bash
-# Install the SDK
+# npm
 npm install @lockllm/sdk
 
-# For wrapper functions, install relevant peer dependencies
-npm install openai              # For OpenAI, Groq, DeepSeek, Mistral, etc.
-npm install @anthropic-ai/sdk   # For Anthropic Claude
-npm install cohere-ai           # For Cohere (optional)
+# pnpm (faster, saves disk space)
+pnpm add @lockllm/sdk
+
+# yarn
+yarn add @lockllm/sdk
 ```
+
+### Peer Dependencies
+
+For wrapper functions, install the relevant provider SDKs:
+
+```bash
+# npm
+npm install openai @anthropic-ai/sdk cohere-ai
+
+# pnpm
+pnpm add openai @anthropic-ai/sdk cohere-ai
+
+# yarn
+yarn add openai @anthropic-ai/sdk cohere-ai
+```
+
+**Provider breakdown:**
+- `openai` - For OpenAI, Groq, DeepSeek, Mistral, etc.
+- `@anthropic-ai/sdk` - For Anthropic Claude
+- `cohere-ai` - For Cohere (optional)
 
 **Note:** Peer dependencies are optional and only required if you use the wrapper functions for those providers.
 
@@ -222,7 +244,7 @@ Compare detection accuracy and performance metrics at [lockllm.com/benchmarks](h
 | **Real-Time Protection** | ✅ <250ms latency | ✅ Built-in | ✅ Yes | ❌ Too slow |
 | **Setup Time** | 5 minutes | Included | Days to weeks | N/A |
 | **Maintenance** | None | None | Constant updates | Constant |
-| **Multi-Provider Support** | ✅ 15+ providers | Single provider | Custom per provider | N/A |
+| **Multi-Provider Support** | ✅ 17+ providers | Single provider | Custom per provider | N/A |
 | **False Positives** | Low (~2-5%) | N/A | High (15-30%) | N/A |
 | **Cost** | Free (BYOK) | Free | Dev time + infrastructure | $$$ |
 | **Attack Coverage** | Comprehensive | Content policy only | Pattern-based only | Manual |
@@ -422,7 +444,7 @@ try {
 
 ## Supported Providers
 
-LockLLM supports 17 AI providers with three flexible integration methods:
+LockLLM supports 17+ AI providers with three flexible integration methods:
 
 ### Provider List
 
@@ -449,13 +471,16 @@ LockLLM supports 17 AI providers with three flexible integration methods:
 ### Custom Endpoints
 
 All providers support custom endpoint URLs for:
-- Self-hosted LLM deployments
-- Alternative API gateways
+- Self-hosted LLM deployments (OpenAI-compatible APIs)
+- Alternative API gateways and reverse proxies
 - Custom Azure OpenAI resources
-- Private cloud deployments
+- Private cloud or air-gapped deployments
 - Development and staging environments
 
-Configure custom endpoints in the [LockLLM dashboard](https://www.lockllm.com/dashboard) when adding provider API keys.
+**How it works:**
+Configure custom endpoints in the [LockLLM dashboard](https://www.lockllm.com/dashboard) when adding any provider API key. The SDK wrappers automatically use your custom endpoint instead of the default.
+
+**Example:** Use the OpenAI wrapper with your self-hosted Llama model by configuring a custom endpoint URL.
 
 ## How It Works
 
@@ -476,7 +501,7 @@ LockLLM uses a secure BYOK (Bring Your Own Key) model - you maintain control of 
 
 - Use this single key in your SDK configuration
 - Authenticates requests to the LockLLM security gateway
-- Works across all 15+ providers with one key
+- Works across all 17+ providers with one key
 - **This is the only key that goes in your code**
 
 ### Request Flow
