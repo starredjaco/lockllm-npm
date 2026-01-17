@@ -876,7 +876,7 @@ import {
 
 // Type inference works automatically
 const config: LockLLMConfig = {
-  apiKey: 'llm_...',
+  apiKey: '...',
   timeout: 30000
 };
 

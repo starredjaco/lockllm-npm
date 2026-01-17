@@ -31,8 +31,8 @@ describe('ScanClient', () => {
         request_id: 'req_12345',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -66,8 +66,8 @@ describe('ScanClient', () => {
         request_id: 'req_12346',
         safe: false,
         label: 1,
-        confidence: 0.95,
-        injection: 0.92,
+        confidence: 95,
+        injection: 92,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -83,7 +83,7 @@ describe('ScanClient', () => {
 
       expect(result.safe).toBe(false);
       expect(result.label).toBe(1);
-      expect(result.injection).toBeGreaterThan(0.9);
+      expect(result.injection).toBeGreaterThan(90);
     });
 
     it('should use default sensitivity when not specified', async () => {
@@ -91,8 +91,8 @@ describe('ScanClient', () => {
         request_id: 'req_12347',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -119,8 +119,8 @@ describe('ScanClient', () => {
         request_id: 'req_12348',
         safe: true,
         label: 0,
-        confidence: 0.85,
-        injection: 0.35,
+        confidence: 85,
+        injection: 35,
         sensitivity: 'low',
         usage: {
           requests: 1,
@@ -144,8 +144,8 @@ describe('ScanClient', () => {
         request_id: 'req_12349',
         safe: false,
         label: 1,
-        confidence: 0.88,
-        injection: 0.15,
+        confidence: 88,
+        injection: 15,
         sensitivity: 'high',
         usage: {
           requests: 1,
@@ -169,8 +169,8 @@ describe('ScanClient', () => {
         request_id: 'req_12350',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -200,8 +200,8 @@ describe('ScanClient', () => {
         request_id: 'req_12351',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 42,
@@ -225,8 +225,8 @@ describe('ScanClient', () => {
         request_id: 'req_12352',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -264,8 +264,8 @@ describe('ScanClient', () => {
         request_id: 'req_12353',
         safe: true,
         label: 0,
-        confidence: 1.0,
-        injection: 0.0,
+        confidence: 100,
+        injection: 0,
         sensitivity: 'medium',
         usage: {
           requests: 1,
@@ -287,8 +287,8 @@ describe('ScanClient', () => {
         request_id: 'req_12354',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,

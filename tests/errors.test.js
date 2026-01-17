@@ -73,8 +73,8 @@ describe('PromptInjectionError', () => {
     const scanResult = {
       safe: false,
       label: 1,
-      confidence: 0.95,
-      injection: 0.92,
+      confidence: 95,
+      injection: 92,
       sensitivity: 'medium',
     };
 
@@ -170,8 +170,8 @@ describe('parseError', () => {
         scan_result: {
           safe: false,
           label: 1,
-          confidence: 0.95,
-          injection: 0.92,
+          confidence: 95,
+          injection: 92,
           sensitivity: 'medium',
         },
       },
@@ -182,7 +182,7 @@ describe('parseError', () => {
     expect(error).toBeInstanceOf(PromptInjectionError);
     expect(error.message).toBe('Malicious prompt detected');
     if (error instanceof PromptInjectionError) {
-      expect(error.scanResult.injection).toBe(0.92);
+      expect(error.scanResult.injection).toBe(92);
     }
   });
 

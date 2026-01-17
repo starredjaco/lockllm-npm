@@ -138,8 +138,8 @@ describe('LockLLM Client', () => {
         request_id: 'req_12345',
         safe: true,
         label: 0,
-        confidence: 0.98,
-        injection: 0.02,
+        confidence: 98,
+        injection: 2,
         sensitivity: 'medium',
         usage: {
           requests: 1,

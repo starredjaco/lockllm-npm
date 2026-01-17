@@ -1,6 +1,6 @@
 {
   "name": "@lockllm/sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Enterprise-grade AI security SDK providing real-time protection against prompt injection, jailbreaks, and adversarial attacks. Drop-in replacement for OpenAI, Anthropic, and 15+ providers with zero code changes. Includes REST API, proxy mode, browser extension, and webhook support. Free BYOK model with unlimited scanning.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -74,22 +74,6 @@
     "url": "https://github.com/lockllm/lockllm-npm"
   },
   "homepage": "https://lockllm.com",
-  "peerDependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
-    "cohere-ai": "^7.0.0",
-    "openai": "^4.0.0"
-  },
-  "peerDependenciesMeta": {
-    "openai": {
-      "optional": true
-    },
-    "@anthropic-ai/sdk": {
-      "optional": true
-    },
-    "cohere-ai": {
-      "optional": true
-    }
-  },
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.71.2",
     "@types/node": "^20.19.30",

@@ -1,6 +1,43 @@
 # Changelog
 
-## [1.1.0] - 2026-01-16
+## [1.0.1] - 2026-01-16
+
+### Changed
+
+#### Flexible SDK Installation
+- **Optional Provider SDKs**: Provider SDKs (OpenAI, Anthropic, Cohere, etc.) are no longer required dependencies. Install only what you need:
+  - Using OpenAI? Just install `openai` package
+  - Using Anthropic? Just install `@anthropic-ai/sdk` package
+  - Using Cohere? Just install `cohere-ai` package
+  - Mix and match any providers your application uses
+- **Smaller Bundle Sizes**: Your application only includes the provider SDKs you actually use, reducing package size and installation time
+- **Pay-As-You-Go Dependencies**: No need to install SDKs for providers you don't use
+
+### Benefits
+- Faster installation with fewer dependencies
+- Smaller `node_modules` folder
+- More control over your project dependencies
+- No unused packages taking up disk space
+
+### Migration Guide
+If you're upgrading from v1.0.0 and using provider wrappers, simply install the provider SDKs you need:
+
+```bash
+# For OpenAI (GPT models, DALL-E, etc.)
+npm install openai
+
+# For Anthropic (Claude models)
+npm install @anthropic-ai/sdk
+
+# For Cohere (Command, Embed models)
+npm install cohere-ai
+
+# Install only what you use!
+```
+
+The SDK will work out of the box once you install the provider packages you need.
+
+## [1.0.0] - 2026-01-16
 
 ### Added
 
