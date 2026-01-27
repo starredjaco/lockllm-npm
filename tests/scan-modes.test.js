@@ -51,10 +51,14 @@ describe('Scan Modes', () => {
         '/v1/scan',
         {
           input: 'What is the capital of France?',
-          sensitivity: 'medium',
-          mode: 'normal',
         },
-        {}
+        {
+          headers: {
+            'x-lockllm-scan-mode': 'normal',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
 
       expect(result.confidence).toBeDefined();
@@ -113,10 +117,14 @@ describe('Scan Modes', () => {
         '/v1/scan',
         {
           input: 'Test prompt',
-          sensitivity: 'medium',
-          mode: 'policy_only',
         },
-        {}
+        {
+          headers: {
+            'x-lockllm-scan-mode': 'policy_only',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
 
       expect(result.confidence).toBeUndefined();
@@ -175,10 +183,14 @@ describe('Scan Modes', () => {
         '/v1/scan',
         {
           input: 'Test prompt',
-          sensitivity: 'medium',
-          mode: 'combined',
         },
-        {}
+        {
+          headers: {
+            'x-lockllm-scan-mode': 'combined',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
 
       expect(result.confidence).toBeDefined();
@@ -320,9 +332,12 @@ describe('Scan Modes', () => {
         '/v1/scan',
         {
           input: 'Test prompt',
-          sensitivity: 'medium',
         },
-        {}
+        {
+          headers: {},
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
   });

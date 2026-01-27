@@ -5,6 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ScanClient } from '../src/scan';
 import { HttpClient } from '../src/utils';
+import { PromptInjectionError } from '../src/errors';
 
 // Mock HttpClient
 vi.mock('../src/utils', () => {
@@ -51,9 +52,14 @@ describe('ScanClient', () => {
         '/v1/scan',
         {
           input: 'What is the capital of France?',
-          sensitivity: 'medium',
         },
-        undefined
+        {
+          headers: {
+            'x-lockllm-sensitivity': 'medium',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
 
       expect(result).toEqual(mockResponse);
@@ -108,9 +114,12 @@ describe('ScanClient', () => {
         '/v1/scan',
         {
           input: 'Test prompt',
-          sensitivity: 'medium',
         },
-        undefined
+        {
+          headers: {},
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -334,12 +343,16 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.objectContaining({
+        {
           input: 'Test prompt',
-          sensitivity: 'medium',
-          mode: 'combined',
-        }),
-        expect.any(Object)
+        },
+        {
+          headers: {
+            'x-lockllm-scan-mode': 'combined',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -366,12 +379,16 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.objectContaining({
+        {
           input: 'Test prompt',
-          sensitivity: 'medium',
-          chunk: true,
-        }),
-        expect.any(Object)
+        },
+        {
+          headers: {
+            'x-lockllm-chunk': 'true',
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -398,12 +415,16 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.any(Object),
-        expect.objectContaining({
-          headers: expect.objectContaining({
+        {
+          input: 'Test prompt',
+        },
+        {
+          headers: {
             'x-lockllm-scan-action': 'block',
-          }),
-        })
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -430,12 +451,16 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.any(Object),
-        expect.objectContaining({
-          headers: expect.objectContaining({
+        {
+          input: 'Test prompt',
+        },
+        {
+          headers: {
             'x-lockllm-policy-action': 'allow_with_warning',
-          }),
-        })
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -462,12 +487,16 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.any(Object),
-        expect.objectContaining({
-          headers: expect.objectContaining({
+        {
+          input: 'Test prompt',
+        },
+        {
+          headers: {
             'x-lockllm-abuse-action': 'block',
-          }),
-        })
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
 
@@ -525,14 +554,18 @@ describe('ScanClient', () => {
 
       expect(mockHttpClient.post).toHaveBeenCalledWith(
         '/v1/scan',
-        expect.any(Object),
-        expect.objectContaining({
-          headers: expect.objectContaining({
+        {
+          input: 'Test prompt',
+        },
+        {
+          headers: {
             'x-lockllm-scan-action': 'block',
             'x-lockllm-policy-action': 'allow_with_warning',
             'x-lockllm-abuse-action': 'block',
-          }),
-        })
+          },
+          signal: undefined,
+          timeout: undefined,
+        }
       );
     });
   });
@@ -735,21 +768,20 @@ describe('ScanClient', () => {
     });
 
     it('should preserve request_id in errors', async () => {
-      const mockError = {
-        error: {
-          message: 'Prompt injection detected',
-          type: 'lockllm_security_error',
-          code: 'prompt_injection_detected',
-          request_id: 'req_preserve_id',
-          scan_result: {
-            safe: false,
-            label: 1,
-            confidence: 95,
-            injection: 92,
-            sensitivity: 'medium',
-          },
+      const mockError = new PromptInjectionError({
+        message: 'Prompt injection detected',
+        type: 'lockllm_security_error',
+        code: 'prompt_injection_detected',
+        status: 400,
+        requestId: 'req_preserve_id',
+        scanResult: {
+          safe: false,
+          label: 1,
+          confidence: 95,
+          injection: 92,
+          sensitivity: 'medium',
         },
-      };
+      });
 
       mockHttpClient.post.mockRejectedValueOnce(mockError);
 

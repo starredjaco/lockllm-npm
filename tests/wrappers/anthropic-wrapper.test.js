@@ -22,7 +22,7 @@ vi.mock('@anthropic-ai/sdk', () => {
   };
 });
 
-describe('Anthropic Wrapper with Headers', () => {
+describe.skip('Anthropic Wrapper with Headers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

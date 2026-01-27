@@ -59,7 +59,7 @@ describe('LogsClient', () => {
 
       const result = await logsClient.list();
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/v1/logs', undefined);
+      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/v1/logs', {});
       expect(result).toEqual(mockLogs);
       expect(result).toHaveLength(2);
     });
@@ -80,10 +80,8 @@ describe('LogsClient', () => {
       const result = await logsClient.list({ log_type: 'scan_api' });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/logs',
-        expect.objectContaining({
-          params: expect.objectContaining({ log_type: 'scan_api' }),
-        })
+        '/api/v1/logs?log_type=scan_api',
+        {}
       );
       expect(result.every((log) => log.log_type === 'scan_api')).toBe(true);
     });
@@ -106,10 +104,8 @@ describe('LogsClient', () => {
       const result = await logsClient.list({ status: 'failure' });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/logs',
-        expect.objectContaining({
-          params: expect.objectContaining({ status: 'failure' }),
-        })
+        '/api/v1/logs?status=failure',
+        {}
       );
       expect(result.every((log) => log.status === 'failure')).toBe(true);
     });
@@ -133,13 +129,8 @@ describe('LogsClient', () => {
       });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/logs',
-        expect.objectContaining({
-          params: expect.objectContaining({
-            start_date: '2024-01-01T00:00:00Z',
-            end_date: '2024-01-31T23:59:59Z',
-          }),
-        })
+        '/api/v1/logs?start_date=2024-01-01T00%3A00%3A00Z&end_date=2024-01-31T23%3A59%3A59Z',
+        {}
       );
     });
 
@@ -159,10 +150,8 @@ describe('LogsClient', () => {
       const result = await logsClient.list({ limit: 10, offset: 10 });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/logs',
-        expect.objectContaining({
-          params: expect.objectContaining({ limit: 10, offset: 10 }),
-        })
+        '/api/v1/logs?limit=10&offset=10',
+        {}
       );
     });
 

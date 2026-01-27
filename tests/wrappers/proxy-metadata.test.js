@@ -8,9 +8,7 @@ import { parseProxyMetadata } from '../../src/utils/proxy-headers';
 describe('Proxy Metadata', () => {
   describe('parseProxyMetadata', () => {
     it('should extract request_id from X-Request-Id', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_12345'],
-      ]);
+      const headers = { 'x-request-id': 'req_12345' };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -18,10 +16,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should extract scanned flag from X-LockLLM-Scanned', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-scanned', 'true'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-scanned': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -29,10 +27,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should extract safe flag from X-LockLLM-Safe', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-safe', 'false'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-safe': 'false',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -40,10 +38,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should extract scan_mode from X-Scan-Mode', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-scan-mode', 'combined'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-scan-mode': 'combined',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -51,10 +49,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should extract credits_mode from X-LockLLM-Credits-Mode', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-credits-mode', 'byok'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-credits-mode': 'byok',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -62,10 +60,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should extract provider from X-LockLLM-Provider', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-provider', 'openai'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-provider': 'openai',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -75,10 +73,10 @@ describe('Proxy Metadata', () => {
 
   describe('scan warnings metadata', () => {
     it('should parse X-LockLLM-Scan-Warning', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-scan-warning', 'true'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-scan-warning': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -86,11 +84,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Injection-Score', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-scan-warning', 'true'],
-        ['x-lockllm-injection-score', '92'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-scan-warning': 'true',
+        'x-lockllm-injection-score': '92',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -98,11 +96,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Confidence', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-scan-warning', 'true'],
-        ['x-lockllm-confidence', '95'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-scan-warning': 'true',
+        'x-lockllm-confidence': '95',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -113,11 +111,11 @@ describe('Proxy Metadata', () => {
       const detail = { message: 'Prompt injection detected', label: 1 };
       const encoded = Buffer.from(JSON.stringify(detail)).toString('base64');
 
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-scan-warning', 'true'],
-        ['x-lockllm-scan-detail', encoded],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-scan-warning': 'true',
+        'x-lockllm-scan-detail': encoded,
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -127,10 +125,10 @@ describe('Proxy Metadata', () => {
 
   describe('policy warnings metadata', () => {
     it('should parse X-LockLLM-Policy-Warnings', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-policy-warnings', 'true'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-policy-warnings': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -138,11 +136,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Warning-Count', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-policy-warnings', 'true'],
-        ['x-lockllm-warning-count', '2'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-policy-warnings': 'true',
+        'x-lockllm-warning-count': '2',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -150,11 +148,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Policy-Confidence', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-policy-warnings', 'true'],
-        ['x-lockllm-policy-confidence', '85'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-policy-warnings': 'true',
+        'x-lockllm-policy-confidence': '85',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -170,11 +168,11 @@ describe('Proxy Metadata', () => {
       ];
       const encoded = Buffer.from(JSON.stringify(detail)).toString('base64');
 
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-policy-warnings', 'true'],
-        ['x-lockllm-warning-detail', encoded],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-policy-warnings': 'true',
+        'x-lockllm-warning-detail': encoded,
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -184,10 +182,10 @@ describe('Proxy Metadata', () => {
 
   describe('abuse warnings metadata', () => {
     it('should parse X-LockLLM-Abuse-Detected', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-abuse-detected', 'true'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-abuse-detected': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -195,11 +193,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Abuse-Confidence', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-abuse-detected', 'true'],
-        ['x-lockllm-abuse-confidence', '90'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-abuse-detected': 'true',
+        'x-lockllm-abuse-confidence': '90',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -207,11 +205,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Abuse-Types (comma-separated)', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-abuse-detected', 'true'],
-        ['x-lockllm-abuse-types', 'bot_generated,repetition'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-abuse-detected': 'true',
+        'x-lockllm-abuse-types': 'bot_generated,repetition',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -225,11 +223,11 @@ describe('Proxy Metadata', () => {
       };
       const encoded = Buffer.from(JSON.stringify(detail)).toString('base64');
 
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-abuse-detected', 'true'],
-        ['x-lockllm-abuse-detail', encoded],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-abuse-detected': 'true',
+        'x-lockllm-abuse-detail': encoded,
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -239,10 +237,10 @@ describe('Proxy Metadata', () => {
 
   describe('routing metadata', () => {
     it('should parse X-LockLLM-Route-Enabled', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -250,11 +248,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Task-Type', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-task-type', 'Code Generation'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-task-type': 'Code Generation',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -262,11 +260,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Complexity', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-complexity', '0.75'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-complexity': '0.75',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -274,11 +272,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Selected-Model', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-selected-model', 'claude-3-sonnet'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-selected-model': 'claude-3-sonnet',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -286,11 +284,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Routing-Reason', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-routing-reason', 'Cost optimization'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-routing-reason': 'Cost optimization',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -298,11 +296,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Original-Provider', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-original-provider', 'anthropic'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-original-provider': 'anthropic',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -310,11 +308,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Original-Model', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-original-model', 'claude-3-opus'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-original-model': 'claude-3-opus',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -322,11 +320,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse cost and savings headers', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-estimated-savings', '0.05'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-estimated-savings': '0.05',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -334,17 +332,17 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse complete routing metadata', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_routing_full'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-task-type', 'Summarization'],
-        ['x-lockllm-complexity', '0.3'],
-        ['x-lockllm-selected-model', 'gpt-3.5-turbo'],
-        ['x-lockllm-routing-reason', 'Low complexity task'],
-        ['x-lockllm-original-provider', 'openai'],
-        ['x-lockllm-original-model', 'gpt-4'],
-        ['x-lockllm-estimated-savings', '0.08'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_routing_full',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-task-type': 'Summarization',
+        'x-lockllm-complexity': '0.3',
+        'x-lockllm-selected-model': 'gpt-3.5-turbo',
+        'x-lockllm-routing-reason': 'Low complexity task',
+        'x-lockllm-original-provider': 'openai',
+        'x-lockllm-original-model': 'gpt-4',
+        'x-lockllm-estimated-savings': '0.08',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -361,10 +359,10 @@ describe('Proxy Metadata', () => {
 
   describe('credit tracking metadata', () => {
     it('should parse X-LockLLM-Credits-Reserved', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-credits-reserved', '0.05'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-credits-reserved': '0.05',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -372,10 +370,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse X-LockLLM-Routing-Fee-Reserved', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_1'],
-        ['x-lockllm-routing-fee-reserved', '0.02'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_1',
+        'x-lockllm-routing-fee-reserved': '0.02',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -383,11 +381,11 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse both credit tracking headers', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_credits'],
-        ['x-lockllm-credits-reserved', '0.10'],
-        ['x-lockllm-routing-fee-reserved', '0.03'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_credits',
+        'x-lockllm-credits-reserved': '0.10',
+        'x-lockllm-routing-fee-reserved': '0.03',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -398,25 +396,25 @@ describe('Proxy Metadata', () => {
 
   describe('complete metadata parsing', () => {
     it('should parse all metadata fields together', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_complete'],
-        ['x-lockllm-scanned', 'true'],
-        ['x-lockllm-safe', 'false'],
-        ['x-scan-mode', 'combined'],
-        ['x-lockllm-credits-mode', 'lockllm_credits'],
-        ['x-lockllm-provider', 'anthropic'],
-        ['x-lockllm-scan-warning', 'true'],
-        ['x-lockllm-injection-score', '92'],
-        ['x-lockllm-confidence', '95'],
-        ['x-lockllm-policy-warnings', 'true'],
-        ['x-lockllm-warning-count', '1'],
-        ['x-lockllm-policy-confidence', '85'],
-        ['x-lockllm-route-enabled', 'true'],
-        ['x-lockllm-task-type', 'Code Generation'],
-        ['x-lockllm-complexity', '0.8'],
-        ['x-lockllm-selected-model', 'claude-3-sonnet'],
-        ['x-lockllm-credits-reserved', '0.05'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_complete',
+        'x-lockllm-scanned': 'true',
+        'x-lockllm-safe': 'false',
+        'x-scan-mode': 'combined',
+        'x-lockllm-credits-mode': 'lockllm_credits',
+        'x-lockllm-provider': 'anthropic',
+        'x-lockllm-scan-warning': 'true',
+        'x-lockllm-injection-score': '92',
+        'x-lockllm-confidence': '95',
+        'x-lockllm-policy-warnings': 'true',
+        'x-lockllm-warning-count': '1',
+        'x-lockllm-policy-confidence': '85',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-task-type': 'Code Generation',
+        'x-lockllm-complexity': '0.8',
+        'x-lockllm-selected-model': 'claude-3-sonnet',
+        'x-lockllm-credits-reserved': '0.05',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -435,9 +433,7 @@ describe('Proxy Metadata', () => {
 
   describe('edge cases', () => {
     it('should handle missing headers gracefully', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_minimal'],
-      ]);
+      const headers = { 'x-request-id': 'req_minimal' };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -463,10 +459,10 @@ describe('Proxy Metadata', () => {
     });
 
     it('should handle case-insensitive headers', () => {
-      const headers = new Map([
-        ['X-Request-Id', 'req_case'],
-        ['X-LockLLM-Scanned', 'true'],
-      ]);
+      const headers = {
+        'X-Request-Id': 'req_case',
+        'X-LockLLM-Scanned': 'true',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -484,12 +480,14 @@ describe('Proxy Metadata', () => {
     });
 
     it('should parse numeric headers correctly', () => {
-      const headers = new Map([
-        ['x-request-id', 'req_numeric'],
-        ['x-lockllm-injection-score', '92.5'],
-        ['x-lockllm-complexity', '0.753'],
-        ['x-lockllm-credits-reserved', '0.123456'],
-      ]);
+      const headers = {
+        'x-request-id': 'req_numeric',
+        'x-lockllm-scan-warning': 'true',
+        'x-lockllm-injection-score': '92.5',
+        'x-lockllm-route-enabled': 'true',
+        'x-lockllm-complexity': '0.753',
+        'x-lockllm-credits-reserved': '0.123456',
+      };
 
       const metadata = parseProxyMetadata(headers);
 
@@ -499,17 +497,17 @@ describe('Proxy Metadata', () => {
     });
 
     it('should handle boolean string conversions', () => {
-      const trueCases = new Map([
-        ['x-request-id', 'req_bool'],
-        ['x-lockllm-scanned', 'true'],
-        ['x-lockllm-safe', 'true'],
-      ]);
+      const trueCases = {
+        'x-request-id': 'req_bool',
+        'x-lockllm-scanned': 'true',
+        'x-lockllm-safe': 'true',
+      };
 
-      const falseCases = new Map([
-        ['x-request-id', 'req_bool'],
-        ['x-lockllm-scanned', 'false'],
-        ['x-lockllm-safe', 'false'],
-      ]);
+      const falseCases = {
+        'x-request-id': 'req_bool',
+        'x-lockllm-scanned': 'false',
+        'x-lockllm-safe': 'false',
+      };
 
       const trueMetadata = parseProxyMetadata(trueCases);
       const falseMetadata = parseProxyMetadata(falseCases);

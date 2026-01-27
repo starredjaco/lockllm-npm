@@ -259,7 +259,7 @@ describe('TiersClient', () => {
 
       const result = await tiersClient.listTransactions();
 
-      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/v1/credits/transactions', undefined);
+      expect(mockHttpClient.get).toHaveBeenCalledWith('/api/v1/credits/transactions', {});
       expect(result).toEqual(mockTransactions);
       expect(result).toHaveLength(2);
     });
@@ -282,10 +282,8 @@ describe('TiersClient', () => {
       const result = await tiersClient.listTransactions({ limit: 10 });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/credits/transactions',
-        expect.objectContaining({
-          params: expect.objectContaining({ limit: 10 }),
-        })
+        '/api/v1/credits/transactions?limit=10',
+        {}
       );
       expect(result).toHaveLength(1);
     });
@@ -308,10 +306,8 @@ describe('TiersClient', () => {
       const result = await tiersClient.listTransactions({ offset: 10 });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/credits/transactions',
-        expect.objectContaining({
-          params: expect.objectContaining({ offset: 10 }),
-        })
+        '/api/v1/credits/transactions?offset=10',
+        {}
       );
     });
 
@@ -344,10 +340,8 @@ describe('TiersClient', () => {
       });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/credits/transactions',
-        expect.objectContaining({
-          params: expect.objectContaining({ transaction_type: 'purchase' }),
-        })
+        '/api/v1/credits/transactions?transaction_type=purchase',
+        {}
       );
       expect(result.every((tx) => tx.transaction_type === 'purchase')).toBe(true);
     });
@@ -523,10 +517,8 @@ describe('TiersClient', () => {
       const result = await tiersClient.listTransactions({ limit: 10, offset: 20 });
 
       expect(mockHttpClient.get).toHaveBeenCalledWith(
-        '/api/v1/credits/transactions',
-        expect.objectContaining({
-          params: expect.objectContaining({ limit: 10, offset: 20 }),
-        })
+        '/api/v1/credits/transactions?limit=10&offset=20',
+        {}
       );
     });
 
