@@ -776,6 +776,64 @@ const lockllm = new LockLLM({
 });
 ```
 
+### Advanced Scan Options
+
+Control scan behavior with mode, sensitivity, and action headers:
+
+```typescript
+// Scan API with advanced options
+const result = await lockllm.scan(
+  {
+    input: userPrompt,
+    sensitivity: 'high',        // 'low' | 'medium' | 'high'
+    mode: 'combined',           // 'normal' | 'policy_only' | 'combined'
+    chunk: true                 // Force chunking for long texts
+  },
+  {
+    scanAction: 'block',        // Block core injection attacks
+    policyAction: 'allow_with_warning',  // Allow but warn on policy violations
+    abuseAction: 'block'        // Enable abuse detection (opt-in)
+  }
+);
+
+// Proxy mode with advanced options
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    scanMode: 'combined',           // Check both core + policies
+    scanAction: 'block',            // Block injection attacks
+    policyAction: 'block',          // Block policy violations
+    abuseAction: 'allow_with_warning',  // Detect abuse, don't block
+    routeAction: 'auto'             // Enable intelligent routing
+  }
+});
+```
+
+**Scan Modes:**
+- `normal` - Core security threats only (injection, jailbreaks, etc.)
+- `policy_only` - Custom policies only (skip core security)
+- `combined` (default) - Both core security AND custom policies
+
+**Sensitivity Levels:**
+- `low` - Fewer false positives, may miss sophisticated attacks
+- `medium` (default) - Balanced approach, recommended
+- `high` - Maximum protection, may have more false positives
+
+**Action Headers:**
+- `scanAction` - Controls core injection detection: `'block'` | `'allow_with_warning'`
+- `policyAction` - Controls custom policy violations: `'block'` | `'allow_with_warning'`
+- `abuseAction` - Controls abuse detection (opt-in): `'block'` | `'allow_with_warning'` | `null`
+- `routeAction` - Controls intelligent routing: `'disabled'` | `'auto'` | `'custom'`
+
+**Default Behavior (no headers):**
+- Scan Mode: `combined` (check both core + policies)
+- Scan Action: `allow_with_warning` (detect but don't block)
+- Policy Action: `allow_with_warning` (detect but don't block)
+- Abuse Action: `null` (disabled, opt-in only)
+- Route Action: `disabled` (no routing)
+
+See [examples/advanced-options.ts](examples/advanced-options.ts) for complete examples.
+
 ## Best Practices
 
 ### Security

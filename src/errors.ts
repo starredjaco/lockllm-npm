@@ -2,7 +2,14 @@
  * Custom error classes for LockLLM SDK
  */
 
-import type { ScanResult, LockLLMErrorData, PromptInjectionErrorData } from './types/errors';
+import type {
+  ScanResult,
+  LockLLMErrorData,
+  PromptInjectionErrorData,
+  PolicyViolationErrorData,
+  AbuseDetectedErrorData,
+  InsufficientCreditsErrorData,
+} from './types/errors';
 
 /**
  * Base error class for all LockLLM errors
@@ -124,6 +131,79 @@ export class ConfigurationError extends LockLLMError {
 }
 
 /**
+ * Error thrown when custom policy violations are detected
+ */
+export class PolicyViolationError extends LockLLMError {
+  public readonly violated_policies: Array<{
+    policy_name: string;
+    violated_categories: Array<{ name: string }>;
+    violation_details?: string;
+  }>;
+
+  constructor(data: PolicyViolationErrorData) {
+    super({
+      message: data.message,
+      type: 'lockllm_policy_error',
+      code: 'policy_violation',
+      status: 403,
+      requestId: data.requestId,
+    });
+    this.name = 'PolicyViolationError';
+    this.violated_policies = data.violated_policies;
+  }
+}
+
+/**
+ * Error thrown when AI abuse is detected
+ */
+export class AbuseDetectedError extends LockLLMError {
+  public readonly abuse_details: {
+    confidence: number;
+    abuse_types: string[];
+    indicators: {
+      bot_score: number;
+      repetition_score: number;
+      resource_score: number;
+      pattern_score: number;
+    };
+    recommendation?: string;
+  };
+
+  constructor(data: AbuseDetectedErrorData) {
+    super({
+      message: data.message,
+      type: 'lockllm_abuse_error',
+      code: 'abuse_detected',
+      status: 400,
+      requestId: data.requestId,
+    });
+    this.name = 'AbuseDetectedError';
+    this.abuse_details = data.abuse_details;
+  }
+}
+
+/**
+ * Error thrown when user has insufficient credits
+ */
+export class InsufficientCreditsError extends LockLLMError {
+  public readonly current_balance: number;
+  public readonly estimated_cost: number;
+
+  constructor(data: InsufficientCreditsErrorData) {
+    super({
+      message: data.message,
+      type: 'lockllm_balance_error',
+      code: 'insufficient_credits',
+      status: 402,
+      requestId: data.requestId,
+    });
+    this.name = 'InsufficientCreditsError';
+    this.current_balance = data.current_balance;
+    this.estimated_cost = data.estimated_cost;
+  }
+}
+
+/**
  * Error thrown when network request fails
  */
 export class NetworkError extends LockLLMError {
@@ -165,6 +245,43 @@ export function parseError(response: any, requestId?: string): LockLLMError {
       status: 400,
       requestId: error.request_id || requestId,
       scanResult: error.scan_result,
+    });
+  }
+
+  // Policy violation error
+  if (error.code === 'policy_violation' && error.violated_policies) {
+    return new PolicyViolationError({
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      status: 403,
+      requestId: error.request_id || requestId,
+      violated_policies: error.violated_policies,
+    });
+  }
+
+  // Abuse detected error
+  if (error.code === 'abuse_detected' && error.abuse_details) {
+    return new AbuseDetectedError({
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      status: 400,
+      requestId: error.request_id || requestId,
+      abuse_details: error.abuse_details,
+    });
+  }
+
+  // Insufficient credits error
+  if (error.code === 'insufficient_credits') {
+    return new InsufficientCreditsError({
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      status: 402,
+      requestId: error.request_id || requestId,
+      current_balance: error.current_balance || 0,
+      estimated_cost: error.estimated_cost || 0,
     });
   }
 

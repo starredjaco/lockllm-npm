@@ -49,3 +49,81 @@ export type Provider =
   | 'azure'
   | 'bedrock'
   | 'vertex-ai';
+
+/** Scan mode for security checks */
+export type ScanMode = 'normal' | 'policy_only' | 'combined';
+
+/** Scan action for threat detection */
+export type ScanAction = 'block' | 'allow_with_warning';
+
+/** Routing action for intelligent model selection */
+export type RouteAction = 'disabled' | 'auto' | 'custom';
+
+/** Proxy request options with advanced headers */
+export interface ProxyRequestOptions extends RequestOptions {
+  /** Scan mode (default: combined) - Check both core security and custom policies */
+  scanMode?: ScanMode;
+  /** Scan action for core injection (default: allow_with_warning) - Threats detected but not blocked */
+  scanAction?: ScanAction;
+  /** Policy action for custom policies (default: allow_with_warning) - Violations detected but not blocked */
+  policyAction?: ScanAction;
+  /** Abuse detection action (opt-in, default: null) - When null, abuse detection is disabled */
+  abuseAction?: ScanAction | null;
+  /** Routing action (default: disabled) - No intelligent routing unless explicitly enabled */
+  routeAction?: RouteAction;
+}
+
+/** Response metadata from proxy */
+export interface ProxyResponseMetadata {
+  /** Unique request identifier */
+  request_id: string;
+  /** Whether the request was scanned */
+  scanned: boolean;
+  /** Whether the request is safe */
+  safe: boolean;
+  /** Scan mode used */
+  scan_mode: ScanMode;
+  /** Credits mode (lockllm_credits or byok) */
+  credits_mode: 'lockllm_credits' | 'byok';
+  /** Provider used */
+  provider: string;
+  /** Model used */
+  model?: string;
+  /** Scan warning details */
+  scan_warning?: {
+    injection_score: number;
+    confidence: number;
+    detail: string;
+  };
+  /** Policy violation warnings */
+  policy_warnings?: {
+    count: number;
+    confidence: number;
+    detail: string;
+  };
+  /** Abuse detection warnings */
+  abuse_detected?: {
+    confidence: number;
+    types: string;
+    detail: string;
+  };
+  /** Routing metadata */
+  routing?: {
+    enabled: boolean;
+    task_type: string;
+    complexity: number;
+    selected_model: string;
+    routing_reason: string;
+    original_provider: string;
+    original_model: string;
+    estimated_savings: number;
+  };
+  /** Credits reserved for this request */
+  credits_reserved?: number;
+  /** Routing fee reserved */
+  routing_fee_reserved?: number;
+  /** Actual credits deducted (available after completion) */
+  credits_deducted?: number;
+  /** Balance after this request (available after completion) */
+  balance_after?: number;
+}

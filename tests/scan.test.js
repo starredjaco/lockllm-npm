@@ -309,4 +309,455 @@ describe('ScanClient', () => {
       expect(result.debug?.mode).toBe('chunked');
     });
   });
+
+  describe('scan with options', () => {
+    it('should pass mode parameter to request body', async () => {
+      const mockResponse = {
+        request_id: 'req_mode_1',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt', mode: 'combined' },
+        {}
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.objectContaining({
+          input: 'Test prompt',
+          sensitivity: 'medium',
+          mode: 'combined',
+        }),
+        expect.any(Object)
+      );
+    });
+
+    it('should pass chunk parameter to request body', async () => {
+      const mockResponse = {
+        request_id: 'req_chunk_1',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt', chunk: true },
+        {}
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.objectContaining({
+          input: 'Test prompt',
+          sensitivity: 'medium',
+          chunk: true,
+        }),
+        expect.any(Object)
+      );
+    });
+
+    it('should build scanAction header', async () => {
+      const mockResponse = {
+        request_id: 'req_scanaction_1',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt' },
+        { scanAction: 'block' }
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.any(Object),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-lockllm-scan-action': 'block',
+          }),
+        })
+      );
+    });
+
+    it('should build policyAction header', async () => {
+      const mockResponse = {
+        request_id: 'req_policyaction_1',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt' },
+        { policyAction: 'allow_with_warning' }
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.any(Object),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-lockllm-policy-action': 'allow_with_warning',
+          }),
+        })
+      );
+    });
+
+    it('should build abuseAction header', async () => {
+      const mockResponse = {
+        request_id: 'req_abuseaction_1',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt' },
+        { abuseAction: 'block' }
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.any(Object),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-lockllm-abuse-action': 'block',
+          }),
+        })
+      );
+    });
+
+    it('should handle null abuseAction (opt-in)', async () => {
+      const mockResponse = {
+        request_id: 'req_abuseaction_null',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt' },
+        { abuseAction: null }
+      );
+
+      const callArgs = mockHttpClient.post.mock.calls[0];
+      const headers = callArgs[2]?.headers || {};
+
+      expect(headers['x-lockllm-abuse-action']).toBeUndefined();
+    });
+
+    it('should build multiple action headers', async () => {
+      const mockResponse = {
+        request_id: 'req_multi_headers',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      await scanClient.scan(
+        { input: 'Test prompt' },
+        {
+          scanAction: 'block',
+          policyAction: 'allow_with_warning',
+          abuseAction: 'block',
+        }
+      );
+
+      expect(mockHttpClient.post).toHaveBeenCalledWith(
+        '/v1/scan',
+        expect.any(Object),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'x-lockllm-scan-action': 'block',
+            'x-lockllm-policy-action': 'allow_with_warning',
+            'x-lockllm-abuse-action': 'block',
+          }),
+        })
+      );
+    });
+  });
+
+  describe('response parsing', () => {
+    it('should parse scan_warning when present', async () => {
+      const mockResponse = {
+        request_id: 'req_scan_warning',
+        safe: false,
+        label: 1,
+        confidence: 95,
+        injection: 92,
+        sensitivity: 'medium',
+        scan_warning: {
+          message: 'Potential prompt injection detected',
+          injection_score: 92,
+          confidence: 95,
+          label: 1,
+        },
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await scanClient.scan({ input: 'Malicious prompt' });
+
+      expect(result.scan_warning).toBeDefined();
+      expect(result.scan_warning?.message).toBe('Potential prompt injection detected');
+      expect(result.scan_warning?.injection_score).toBe(92);
+      expect(result.scan_warning?.confidence).toBe(95);
+    });
+
+    it('should parse policy_warnings when present', async () => {
+      const mockResponse = {
+        request_id: 'req_policy_warnings',
+        safe: false,
+        label: 1,
+        confidence: 98,
+        injection: 2,
+        policy_confidence: 85,
+        sensitivity: 'medium',
+        policy_warnings: [
+          {
+            policy_name: 'No Medical Advice',
+            violated_categories: [{ name: 'Medical Diagnosis' }],
+            violation_details: 'Attempted to provide medical diagnosis',
+          },
+        ],
+        usage: {
+          requests: 2,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await scanClient.scan({ input: 'Medical prompt' });
+
+      expect(result.policy_warnings).toBeDefined();
+      expect(result.policy_warnings).toHaveLength(1);
+      expect(result.policy_warnings?.[0].policy_name).toBe('No Medical Advice');
+    });
+
+    it('should parse abuse_warnings when present', async () => {
+      const mockResponse = {
+        request_id: 'req_abuse_warnings',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        abuse_warnings: {
+          detected: true,
+          confidence: 90,
+          abuse_types: ['bot_generated', 'repetition'],
+          indicators: {
+            bot_score: 95,
+            repetition_score: 88,
+            resource_score: 15,
+            pattern_score: 85,
+          },
+          recommendation: 'Monitor this API key',
+        },
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await scanClient.scan({ input: 'Bot-like content' });
+
+      expect(result.abuse_warnings).toBeDefined();
+      expect(result.abuse_warnings?.detected).toBe(true);
+      expect(result.abuse_warnings?.confidence).toBe(90);
+      expect(result.abuse_warnings?.abuse_types).toContain('bot_generated');
+    });
+
+    it('should handle missing optional fields', async () => {
+      const mockResponse = {
+        request_id: 'req_minimal',
+        safe: true,
+        label: 0,
+        confidence: 98,
+        injection: 2,
+        sensitivity: 'medium',
+        usage: {
+          requests: 1,
+          input_chars: 100,
+        },
+      };
+
+      mockHttpClient.post.mockResolvedValueOnce({ data: mockResponse });
+
+      const result = await scanClient.scan({ input: 'Test prompt' });
+
+      expect(result.scan_warning).toBeUndefined();
+      expect(result.policy_warnings).toBeUndefined();
+      expect(result.abuse_warnings).toBeUndefined();
+    });
+  });
+
+  describe('error handling', () => {
+    it('should throw PromptInjectionError on core block', async () => {
+      const mockError = {
+        error: {
+          message: 'Prompt injection detected',
+          type: 'lockllm_security_error',
+          code: 'prompt_injection_detected',
+          request_id: 'req_error_1',
+          scan_result: {
+            safe: false,
+            label: 1,
+            confidence: 95,
+            injection: 92,
+            sensitivity: 'medium',
+          },
+        },
+      };
+
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
+
+      await expect(
+        scanClient.scan({ input: 'Malicious prompt' })
+      ).rejects.toThrow();
+    });
+
+    it('should throw PolicyViolationError on policy block', async () => {
+      const mockError = {
+        error: {
+          message: 'Policy violation detected',
+          type: 'lockllm_policy_error',
+          code: 'policy_violation',
+          request_id: 'req_error_2',
+          violated_policies: [
+            {
+              policy_name: 'No Medical Advice',
+              violated_categories: [{ name: 'Medical Diagnosis' }],
+            },
+          ],
+        },
+      };
+
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
+
+      await expect(
+        scanClient.scan({ input: 'Medical question' })
+      ).rejects.toThrow();
+    });
+
+    it('should throw AbuseDetectedError on abuse block', async () => {
+      const mockError = {
+        error: {
+          message: 'Abuse detected',
+          type: 'lockllm_abuse_error',
+          code: 'abuse_detected',
+          request_id: 'req_error_3',
+          abuse_details: {
+            confidence: 95,
+            abuse_types: ['bot_generated'],
+            indicators: {
+              bot_score: 98,
+              repetition_score: 20,
+              resource_score: 10,
+              pattern_score: 85,
+            },
+          },
+        },
+      };
+
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
+
+      await expect(
+        scanClient.scan({ input: 'Bot content' })
+      ).rejects.toThrow();
+    });
+
+    it('should preserve request_id in errors', async () => {
+      const mockError = {
+        error: {
+          message: 'Prompt injection detected',
+          type: 'lockllm_security_error',
+          code: 'prompt_injection_detected',
+          request_id: 'req_preserve_id',
+          scan_result: {
+            safe: false,
+            label: 1,
+            confidence: 95,
+            injection: 92,
+            sensitivity: 'medium',
+          },
+        },
+      };
+
+      mockHttpClient.post.mockRejectedValueOnce(mockError);
+
+      try {
+        await scanClient.scan({ input: 'Malicious' });
+      } catch (error) {
+        expect(error.requestId).toBe('req_preserve_id');
+      }
+    });
+  });
 });

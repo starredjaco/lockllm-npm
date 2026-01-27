@@ -30,6 +30,22 @@ export function getProxyURL(provider: ProviderName): string {
 }
 
 /**
+ * Get the universal proxy URL (non-BYOK mode)
+ * Access 200+ models via OpenRouter without configuring provider keys
+ *
+ * @returns The universal proxy URL
+ *
+ * @example
+ * ```typescript
+ * const url = getUniversalProxyURL();
+ * // Returns: 'https://api.lockllm.com/v1/proxy/chat/completions'
+ * ```
+ */
+export function getUniversalProxyURL(): string {
+  return `${LOCKLLM_PROXY_BASE}/chat/completions`;
+}
+
+/**
  * Get all available proxy URLs
  *
  * @returns Record of all provider proxy URLs
@@ -145,6 +161,24 @@ export class HttpClient {
     options?: RequestOptions
   ): Promise<{ data: T; requestId: string }> {
     return this.request<T>('POST', path, body, options);
+  }
+
+  /**
+   * Make a PUT request
+   */
+  async put<T = any>(
+    path: string,
+    body?: any,
+    options?: RequestOptions
+  ): Promise<{ data: T; requestId: string }> {
+    return this.request<T>('PUT', path, body, options);
+  }
+
+  /**
+   * Make a DELETE request
+   */
+  async delete(path: string, options?: RequestOptions): Promise<void> {
+    await this.request<void>('DELETE', path, undefined, options);
   }
 
   /**

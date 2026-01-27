@@ -4,6 +4,12 @@
 
 import { HttpClient } from './utils';
 import { ScanClient } from './scan';
+import { PoliciesClient } from './policies';
+import { RoutingClient } from './routing';
+import { TiersClient } from './tiers';
+import { LogsClient } from './logs';
+import { WebhooksClient } from './webhooks';
+import { UpstreamKeysClient } from './upstream-keys';
 import { ConfigurationError } from './errors';
 import type { LockLLMConfig } from './types/common';
 
@@ -15,6 +21,14 @@ export class LockLLM {
   private readonly config: Required<LockLLMConfig>;
   private readonly http: HttpClient;
   private readonly scanClient: ScanClient;
+
+  // Management API clients
+  public readonly policies: PoliciesClient;
+  public readonly routing: RoutingClient;
+  public readonly tiers: TiersClient;
+  public readonly logs: LogsClient;
+  public readonly webhooks: WebhooksClient;
+  public readonly upstreamKeys: UpstreamKeysClient;
 
   /**
    * Create a new LockLLM client
@@ -54,6 +68,14 @@ export class LockLLM {
 
     // Initialize scan client
     this.scanClient = new ScanClient(this.http);
+
+    // Initialize management clients
+    this.policies = new PoliciesClient(this.http);
+    this.routing = new RoutingClient(this.http);
+    this.tiers = new TiersClient(this.http);
+    this.logs = new LogsClient(this.http);
+    this.webhooks = new WebhooksClient(this.http);
+    this.upstreamKeys = new UpstreamKeysClient(this.http);
   }
 
   /**
