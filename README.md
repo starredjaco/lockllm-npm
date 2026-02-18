@@ -28,7 +28,7 @@ LockLLM is a state-of-the-art AI security ecosystem that detects prompt injectio
 - **Advanced ML Detection** - Models trained on real-world attack patterns for prompt injection and jailbreaks
 - **17+ Provider Support** - Universal coverage across OpenAI, Anthropic, Azure, Bedrock, Gemini, and more
 - **Drop-in Integration** - Replace existing SDKs with zero code changes - just change one line
-- **Completely Free** - BYOK (Bring Your Own Key) model with unlimited usage and no rate limits
+- **Free Unlimited Scanning** - BYOK (Bring Your Own Key) model with free unlimited scanning
 - **Privacy by Default** - Your data is never stored, only scanned in-memory and discarded
 
 ## Why LockLLM
@@ -79,6 +79,10 @@ LockLLM provides production-ready AI security that integrates seamlessly into yo
 | **Streaming Compatible** | Works seamlessly with streaming responses from any provider |
 | **Configurable Sensitivity** | Adjust detection thresholds (low/medium/high) per use case |
 | **Custom Endpoints** | Configure custom URLs for any provider (self-hosted, Azure, private clouds) |
+| **Custom Content Policies** | Define your own content rules in the dashboard and enforce them automatically across all providers |
+| **AI Abuse Detection** | Detect bot-generated content, repetition attacks, and resource exhaustion from your end-users |
+| **Intelligent Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
+| **Response Caching** | Cache identical LLM responses to reduce costs and latency on repeated queries |
 | **Enterprise Privacy** | Provider keys encrypted at rest, prompts never stored |
 | **Production Ready** | Battle-tested with automatic retries, timeouts, and error handling |
 
@@ -400,6 +404,9 @@ const highResult = await lockllm.scan({
 import {
   LockLLMError,
   PromptInjectionError,
+  PolicyViolationError,
+  AbuseDetectedError,
+  InsufficientCreditsError,
   AuthenticationError,
   RateLimitError,
   UpstreamError
@@ -417,13 +424,19 @@ try {
     console.log("Injection confidence:", error.scanResult.injection);
     console.log("Request ID:", error.requestId);
 
-    // Log to security monitoring system
-    await logSecurityIncident({
-      type: 'prompt_injection',
-      confidence: error.scanResult.injection,
-      requestId: error.requestId,
-      timestamp: new Date()
-    });
+  } else if (error instanceof PolicyViolationError) {
+    // Custom policy violation detected
+    console.log("Policy violation:", error.violated_policies);
+
+  } else if (error instanceof AbuseDetectedError) {
+    // AI abuse detected (bot content, repetition, etc.)
+    console.log("Abuse detected:", error.abuse_details.abuse_types);
+    console.log("Confidence:", error.abuse_details.confidence);
+
+  } else if (error instanceof InsufficientCreditsError) {
+    // Not enough credits
+    console.log("Balance:", error.current_balance);
+    console.log("Cost:", error.estimated_cost);
 
   } else if (error instanceof AuthenticationError) {
     console.log("Invalid LockLLM API key");
@@ -587,7 +600,7 @@ interface LockLLMConfig {
 Scan a prompt for security threats before sending to an LLM.
 
 ```typescript
-await lockllm.scan(request: ScanRequest): Promise<ScanResponse>
+await lockllm.scan(request: ScanRequest, options?: ScanOptions): Promise<ScanResponse>
 ```
 
 **Request Parameters:**
@@ -596,6 +609,14 @@ await lockllm.scan(request: ScanRequest): Promise<ScanResponse>
 interface ScanRequest {
   input: string;                           // Required: Text to scan
   sensitivity?: 'low' | 'medium' | 'high'; // Optional: Detection level (default: 'medium')
+  mode?: 'normal' | 'policy_only' | 'combined'; // Optional: Scan mode (default: 'combined')
+  chunk?: boolean;                         // Optional: Force chunking for long texts
+}
+
+interface ScanOptions {
+  scanAction?: 'block' | 'allow_with_warning';   // Core injection behavior
+  policyAction?: 'block' | 'allow_with_warning'; // Custom policy behavior
+  abuseAction?: 'block' | 'allow_with_warning';  // Abuse detection (opt-in)
 }
 ```
 
@@ -605,8 +626,9 @@ interface ScanRequest {
 interface ScanResponse {
   safe: boolean;             // Whether input is safe (true) or malicious (false)
   label: 0 | 1;             // Classification: 0=safe, 1=malicious
-  confidence: number;        // Confidence score (0-1)
-  injection: number;         // Injection risk score (0-1, higher=more risky)
+  confidence?: number;       // Core injection confidence score (0-1)
+  injection?: number;        // Injection risk score (0-1, higher=more risky)
+  policy_confidence?: number; // Policy check confidence (in combined/policy_only mode)
   sensitivity: Sensitivity;  // Sensitivity level used for scan
   request_id: string;        // Unique request identifier
 
@@ -615,11 +637,20 @@ interface ScanResponse {
     input_chars: number;     // Number of characters processed
   };
 
-  debug?: {                 // Only available with Pro plan
+  debug?: {
     duration_ms: number;    // Total processing time
     inference_ms: number;   // ML inference time
     mode: 'single' | 'chunked';
   };
+
+  // Present when using policy_only or combined mode with allow_with_warning
+  policy_warnings?: PolicyViolation[];
+  // Present when core injection detected with allow_with_warning
+  scan_warning?: ScanWarning;
+  // Present when abuse detection is enabled and abuse found
+  abuse_warnings?: AbuseWarning;
+  // Present when intelligent routing is enabled
+  routing?: { task_type: string; complexity: number; selected_model?: string; };
 }
 ```
 
@@ -640,6 +671,15 @@ createGroq(config: GenericClientConfig): OpenAI
 interface GenericClientConfig {
   apiKey: string;           // Required: Your LockLLM API key
   baseURL?: string;         // Optional: Override proxy URL
+  proxyOptions?: {          // Optional: Security and routing configuration
+    scanMode?: 'normal' | 'policy_only' | 'combined';
+    scanAction?: 'block' | 'allow_with_warning';
+    policyAction?: 'block' | 'allow_with_warning';
+    abuseAction?: 'block' | 'allow_with_warning' | null;
+    routeAction?: 'disabled' | 'auto' | 'custom';
+    cacheResponse?: boolean;
+    cacheTTL?: number;
+  };
   [key: string]: any;       // Optional: Provider-specific options
 }
 ```
@@ -656,6 +696,16 @@ const url = getProxyURL('openai');
 // Returns: 'https://api.lockllm.com/v1/proxy/openai'
 ```
 
+**Get universal proxy URL (non-BYOK, 200+ models):**
+
+```typescript
+function getUniversalProxyURL(): string
+
+// Example
+const url = getUniversalProxyURL();
+// Returns: 'https://api.lockllm.com/v1/proxy/chat/completions'
+```
+
 **Get all proxy URLs:**
 
 ```typescript
@@ -665,6 +715,34 @@ function getAllProxyURLs(): Record<ProviderName, string>
 const urls = getAllProxyURLs();
 console.log(urls.openai);     // 'https://api.lockllm.com/v1/proxy/openai'
 console.log(urls.anthropic);  // 'https://api.lockllm.com/v1/proxy/anthropic'
+```
+
+**Build LockLLM proxy headers:**
+
+```typescript
+import { buildLockLLMHeaders } from '@lockllm/sdk';
+
+const headers = buildLockLLMHeaders({
+  scanMode: 'combined',
+  scanAction: 'block',
+  policyAction: 'allow_with_warning',
+  abuseAction: 'block',
+  routeAction: 'auto'
+});
+// Returns: { 'x-lockllm-scan-mode': 'combined', ... }
+```
+
+**Parse proxy response metadata:**
+
+```typescript
+import { parseProxyMetadata } from '@lockllm/sdk';
+
+// Parse response headers from any proxy request
+const metadata = parseProxyMetadata(response.headers);
+console.log(metadata.safe);          // true/false
+console.log(metadata.scan_mode);     // 'combined'
+console.log(metadata.cache_status);  // 'HIT' or 'MISS'
+console.log(metadata.routing);       // { task_type, complexity, selected_model, ... }
 ```
 
 ## Error Types
@@ -678,6 +756,9 @@ LockLLMError (base)
 ├── AuthenticationError (401)
 ├── RateLimitError (429)
 ├── PromptInjectionError (400)
+├── PolicyViolationError (403)
+├── AbuseDetectedError (400)
+├── InsufficientCreditsError (402)
 ├── UpstreamError (502)
 ├── ConfigurationError (400)
 └── NetworkError (0)
@@ -699,6 +780,32 @@ class PromptInjectionError extends LockLLMError {
 
 class RateLimitError extends LockLLMError {
   retryAfter?: number;     // Milliseconds until retry allowed
+}
+
+class PolicyViolationError extends LockLLMError {
+  violated_policies: Array<{
+    policy_name: string;
+    violated_categories: Array<{ name: string }>;
+    violation_details?: string;
+  }>;
+}
+
+class AbuseDetectedError extends LockLLMError {
+  abuse_details: {
+    confidence: number;
+    abuse_types: string[];
+    indicators: {
+      bot_score: number;
+      repetition_score: number;
+      resource_score: number;
+      pattern_score: number;
+    };
+  };
+}
+
+class InsufficientCreditsError extends LockLLMError {
+  current_balance: number;  // Current credit balance
+  estimated_cost: number;   // Estimated cost of the request
 }
 
 class UpstreamError extends LockLLMError {
@@ -732,13 +839,22 @@ LockLLM adds minimal latency while providing comprehensive security protection. 
 
 ## Rate Limits
 
-LockLLM provides generous rate limits for all users, with the Free tier supporting most production use cases.
+LockLLM uses a 10-tier progressive system based on monthly usage. Higher tiers unlock faster rate limits and free monthly credits.
 
-| Tier | Requests per Minute | Best For |
-|------|---------------------|----------|
-| **Free** | 1,000 RPM | Most applications, startups, side projects |
-| **Pro** | 10,000 RPM | High-traffic applications, enterprise pilots |
-| **Enterprise** | Custom | Large-scale deployments, custom SLAs |
+| Tier | Max RPM | Monthly Spending Requirement |
+|------|---------|----------------------------|
+| **Tier 1** (Free) | 30 RPM | $0 |
+| **Tier 2** | 50 RPM | $10/month |
+| **Tier 3** | 100 RPM | $50/month |
+| **Tier 4** | 200 RPM | $100/month |
+| **Tier 5** | 500 RPM | $250/month |
+| **Tier 6** | 1,000 RPM | $500/month |
+| **Tier 7** | 2,000 RPM | $1,000/month |
+| **Tier 8** | 5,000 RPM | $3,000/month |
+| **Tier 9** | 10,000 RPM | $5,000/month |
+| **Tier 10** | 20,000 RPM | $10,000/month |
+
+See [pricing](https://www.lockllm.com/pricing) for full tier details and free monthly credits.
 
 **Smart Rate Limit Handling:**
 
@@ -924,17 +1040,17 @@ For non-JavaScript environments, use the REST API directly:
 
 **Scan Endpoint:**
 ```bash
-curl -X POST https://api.lockllm.com/scan \
-  -H "x-api-key: YOUR_LOCKLLM_API_KEY" \
+curl -X POST https://api.lockllm.com/v1/scan \
+  -H "Authorization: Bearer YOUR_LOCKLLM_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"prompt": "Your text to scan", "sensitivity": "medium"}'
+  -d '{"input": "Your text to scan", "sensitivity": "medium"}'
 ```
 
 **Proxy Endpoints:**
 ```bash
 # OpenAI-compatible proxy
 curl -X POST https://api.lockllm.com/v1/proxy/openai/chat/completions \
-  -H "x-api-key: YOUR_LOCKLLM_API_KEY" \
+  -H "Authorization: Bearer YOUR_LOCKLLM_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}'
 ```

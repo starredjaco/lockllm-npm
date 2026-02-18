@@ -1,5 +1,109 @@
 # Changelog
 
+## [1.1.0] - 2026-02-18
+
+### Added
+
+#### Custom Content Policy Enforcement
+You can now enforce your own content rules on top of LockLLM's built-in security. Create custom policies in the [dashboard](https://www.lockllm.com/policies), and the SDK will automatically check prompts against them. When a policy is violated, you'll get a `PolicyViolationError` with the exact policy name, violated categories, and details.
+
+```typescript
+try {
+  await openai.chat.completions.create({ ... });
+} catch (error) {
+  if (error instanceof PolicyViolationError) {
+    console.log(error.violated_policies);
+    // [{ policy_name: "No competitor mentions", violated_categories: [...] }]
+  }
+}
+```
+
+#### AI Abuse Detection
+Protect your endpoints from automated misuse. When enabled, LockLLM detects bot-generated content, repetitive prompts, and resource exhaustion attacks. If abuse is detected, you'll get an `AbuseDetectedError` with confidence scores and detailed indicator breakdowns.
+
+```typescript
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    abuseAction: 'block'  // Opt-in: block abusive requests
+  }
+});
+```
+
+#### Credit Balance Awareness
+The SDK now returns a dedicated `InsufficientCreditsError` when your balance is too low for a request. The error includes your `current_balance` and the `estimated_cost`, so you can handle billing gracefully in your application.
+
+#### Scan Modes and Actions
+Control exactly what gets checked and what happens when threats are found:
+
+- **Scan modes** - Choose `normal` (core security only), `policy_only` (custom policies only), or `combined` (both)
+- **Actions per detection type** - Set `block` or `allow_with_warning` independently for core scans, custom policies, and abuse detection
+- **Abuse detection** is opt-in - disabled by default, enable it with `abuseAction`
+
+```typescript
+const result = await lockllm.scan(
+  { input: userPrompt, mode: 'combined', sensitivity: 'high' },
+  { scanAction: 'block', policyAction: 'allow_with_warning', abuseAction: 'block' }
+);
+```
+
+#### Proxy Options on All Wrappers
+All wrapper functions (`createOpenAI`, `createAnthropic`, `createGroq`, etc.) now accept a `proxyOptions` parameter so you can configure security behavior at initialization time instead of per-request:
+
+```typescript
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    scanMode: 'combined',
+    scanAction: 'block',
+    policyAction: 'block',
+    routeAction: 'auto',        // Enable intelligent routing
+    cacheResponse: true,         // Enable response caching
+    cacheTTL: 3600               // Cache for 1 hour
+  }
+});
+```
+
+#### Intelligent Routing
+Let LockLLM automatically select the best model for each request based on task type and complexity. Set `routeAction: 'auto'` to enable, or `routeAction: 'custom'` to use your own routing rules from the dashboard.
+
+#### Response Caching
+Reduce costs by caching identical LLM responses. Enabled by default in proxy mode - disable it with `cacheResponse: false` or customize the TTL with `cacheTTL`.
+
+#### Universal Proxy Mode
+Access 200+ models without configuring individual provider API keys using `getUniversalProxyURL()`. Uses LockLLM credits instead of BYOK.
+
+```typescript
+import { getUniversalProxyURL } from '@lockllm/sdk';
+const url = getUniversalProxyURL();
+// 'https://api.lockllm.com/v1/proxy/chat/completions'
+```
+
+#### Proxy Response Metadata
+New utilities to read detailed metadata from proxy responses - scan results, routing decisions, cache status, and credit usage:
+
+```typescript
+import { parseProxyMetadata } from '@lockllm/sdk';
+const metadata = parseProxyMetadata(response.headers);
+// metadata.safe, metadata.routing, metadata.cache_status, metadata.credits_deducted, etc.
+```
+
+#### Expanded Scan Response
+Scan responses now include richer data when using advanced features:
+- `policy_warnings` - Which custom policies were violated and why
+- `scan_warning` - Injection details when using `allow_with_warning`
+- `abuse_warnings` - Abuse indicators when abuse detection is enabled
+- `routing` - Task type, complexity score, and selected model when routing is enabled
+
+### Changed
+- The scan API is fully backward compatible - existing code works without changes. Internally, scan configuration is now sent via HTTP headers for better compatibility and caching behavior.
+
+### Notes
+- All new features are opt-in. Existing integrations continue to work without any changes.
+- Custom policies, abuse detection, and routing are configured in the [LockLLM dashboard](https://www.lockllm.com/dashboard).
+
+---
+
 ## [1.0.1] - 2026-01-16
 
 ### Changed
