@@ -16,23 +16,50 @@ export {
   AuthenticationError,
   RateLimitError,
   PromptInjectionError,
+  PolicyViolationError,
+  AbuseDetectedError,
+  InsufficientCreditsError,
   UpstreamError,
   ConfigurationError,
   NetworkError,
 } from './errors';
 
 // Types
-export type { LockLLMConfig, RequestOptions, Provider } from './types/common';
-export type { ScanRequest, ScanResponse, Sensitivity } from './types/scan';
+export type {
+  LockLLMConfig,
+  RequestOptions,
+  Provider,
+  ScanMode,
+  ScanAction,
+  RouteAction,
+  ProxyRequestOptions,
+  ProxyResponseMetadata,
+} from './types/common';
+
+export type {
+  ScanRequest,
+  ScanResponse,
+  ScanOptions,
+  Sensitivity,
+  PolicyViolation,
+  ScanWarning,
+  AbuseWarning,
+} from './types/scan';
+
 export type {
   ScanResult,
   LockLLMErrorData,
   PromptInjectionErrorData,
+  PolicyViolationErrorData,
+  AbuseDetectedErrorData,
+  InsufficientCreditsErrorData,
 } from './types/errors';
+
 export type { ProviderName } from './types/providers';
 
 // Utilities
-export { getProxyURL, getAllProxyURLs } from './utils';
+export { getProxyURL, getAllProxyURLs, getUniversalProxyURL } from './utils';
+export { buildLockLLMHeaders, parseProxyMetadata, decodeDetailField } from './utils/proxy-headers';
 
 // Wrappers (re-exported for convenience)
 export {

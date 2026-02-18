@@ -22,6 +22,8 @@
 
 import { getProxyURL } from '../utils';
 import type { ProviderName } from '../types/providers';
+import type { ProxyRequestOptions } from '../types/common';
+import { buildLockLLMHeaders } from '../utils/proxy-headers';
 
 export interface GenericClientConfig {
   /**
@@ -35,6 +37,11 @@ export interface GenericClientConfig {
    * By default, uses LockLLM proxy URL for the provider
    */
   baseURL?: string;
+
+  /**
+   * Proxy request options for scan, policy, abuse, and routing control
+   */
+  proxyOptions?: ProxyRequestOptions;
 
   /**
    * Other client-specific options
@@ -79,15 +86,27 @@ export function createClient<T = any>(
   ClientConstructor: new (config: any) => T,
   config: GenericClientConfig
 ): T {
-  const { apiKey, baseURL, ...otherOptions } = config;
+  const { apiKey, baseURL, proxyOptions, ...otherOptions } = config;
 
   // Use provided baseURL or default to LockLLM proxy
   const clientBaseURL = baseURL || getProxyURL(provider);
+
+  // Build LockLLM headers from proxy options
+  const lockllmHeaders = buildLockLLMHeaders(proxyOptions);
+
+  // Merge with existing headers
+  const defaultHeaders = otherOptions.defaultHeaders || {};
+  const mergedHeaders = {
+    ...defaultHeaders,
+    ...lockllmHeaders,
+    ...(proxyOptions?.headers || {}),
+  };
 
   // Create client with LockLLM proxy configuration
   return new ClientConstructor({
     apiKey,
     baseURL: clientBaseURL,
+    defaultHeaders: mergedHeaders,
     ...otherOptions,
   });
 }

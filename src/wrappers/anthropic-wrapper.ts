@@ -13,7 +13,11 @@
  * // With this:
  * import { createAnthropic } from '@lockllm/sdk/wrappers';
  * const anthropic = createAnthropic({
- *   apiKey: process.env.LOCKLLM_API_KEY
+ *   apiKey: process.env.LOCKLLM_API_KEY,
+ *   proxyOptions: {
+ *     scanMode: 'combined',
+ *     scanAction: 'block'
+ *   }
  * });
  *
  * // Everything else stays the same!
@@ -24,6 +28,9 @@
  * });
  * ```
  */
+
+import type { ProxyRequestOptions } from '../types/common';
+import { buildLockLLMHeaders } from '../utils/proxy-headers';
 
 export interface CreateAnthropicConfig {
   /**
@@ -37,6 +44,11 @@ export interface CreateAnthropicConfig {
    * Override this only if you're using a custom LockLLM endpoint
    */
   baseURL?: string;
+
+  /**
+   * Proxy request options for scan, policy, abuse, and routing control
+   */
+  proxyOptions?: ProxyRequestOptions;
 
   /**
    * Other Anthropic client options
@@ -86,12 +98,24 @@ export function createAnthropic(config: CreateAnthropicConfig): any {
   // Get Anthropic SDK constructor
   const AnthropicConstructor = getAnthropicConstructor();
 
-  const { apiKey, baseURL, ...otherOptions } = config;
+  const { apiKey, baseURL, proxyOptions, ...otherOptions } = config;
+
+  // Build LockLLM headers from proxy options
+  const lockllmHeaders = buildLockLLMHeaders(proxyOptions);
+
+  // Merge with existing headers
+  const defaultHeaders = otherOptions.defaultHeaders || {};
+  const mergedHeaders = {
+    ...defaultHeaders,
+    ...lockllmHeaders,
+    ...(proxyOptions?.headers || {}),
+  };
 
   // Create Anthropic client with LockLLM proxy
   return new AnthropicConstructor({
     apiKey,
     baseURL: baseURL || 'https://api.lockllm.com/v1/proxy/anthropic',
+    defaultHeaders: mergedHeaders,
     ...otherOptions,
   });
 }

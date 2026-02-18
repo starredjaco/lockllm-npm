@@ -13,7 +13,11 @@
  * // With this:
  * import { createOpenAI } from '@lockllm/sdk/wrappers';
  * const openai = createOpenAI({
- *   apiKey: process.env.LOCKLLM_API_KEY
+ *   apiKey: process.env.LOCKLLM_API_KEY,
+ *   proxyOptions: {
+ *     scanMode: 'combined',
+ *     scanAction: 'block'
+ *   }
  * });
  *
  * // Everything else stays the same!
@@ -23,6 +27,9 @@
  * });
  * ```
  */
+
+import type { ProxyRequestOptions } from '../types/common';
+import { buildLockLLMHeaders } from '../utils/proxy-headers';
 
 export interface CreateOpenAIConfig {
   /**
@@ -36,6 +43,11 @@ export interface CreateOpenAIConfig {
    * Override this only if you're using a custom LockLLM endpoint
    */
   baseURL?: string;
+
+  /**
+   * Proxy request options for scan, policy, abuse, and routing control
+   */
+  proxyOptions?: ProxyRequestOptions;
 
   /**
    * Other OpenAI client options
@@ -84,12 +96,24 @@ export function createOpenAI(config: CreateOpenAIConfig): any {
   // Get OpenAI SDK constructor
   const OpenAIConstructor = getOpenAIConstructor();
 
-  const { apiKey, baseURL, ...otherOptions} = config;
+  const { apiKey, baseURL, proxyOptions, ...otherOptions } = config;
+
+  // Build LockLLM headers from proxy options
+  const lockllmHeaders = buildLockLLMHeaders(proxyOptions);
+
+  // Merge with existing headers
+  const defaultHeaders = otherOptions.defaultHeaders || {};
+  const mergedHeaders = {
+    ...defaultHeaders,
+    ...lockllmHeaders,
+    ...(proxyOptions?.headers || {}),
+  };
 
   // Create OpenAI client with LockLLM proxy
   return new OpenAIConstructor({
     apiKey,
     baseURL: baseURL || 'https://api.lockllm.com/v1/proxy/openai',
+    defaultHeaders: mergedHeaders,
     ...otherOptions,
   });
 }
