@@ -10,7 +10,7 @@
 
 **All-in-One AI Security for LLM Applications**
 
-*Keep control of your AI. Detect prompt injection, jailbreaks, and adversarial attacks in real-time across 17+ providers with zero code changes.*
+*Keep control of your AI. Detect prompt injection, jailbreaks, PII leakage, and adversarial attacks in real-time across 17+ providers with zero code changes.*
 
 [Quick Start](#quick-start) · [Documentation](https://www.lockllm.com/docs) · [Examples](#examples) · [Benchmarks](https://www.lockllm.com) · [API Reference](#api-reference)
 
@@ -82,6 +82,7 @@ LockLLM provides production-ready AI security that integrates seamlessly into yo
 | **Custom Content Policies** | Define your own content rules in the dashboard and enforce them automatically across all providers |
 | **AI Abuse Detection** | Detect bot-generated content, repetition attacks, and resource exhaustion from your end-users |
 | **Intelligent Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
+| **PII Detection & Redaction** | Detect and automatically redact emails, phone numbers, SSNs, credit cards, and other personal information before they reach AI providers |
 | **Response Caching** | Cache identical LLM responses to reduce costs and latency on repeated queries |
 | **Enterprise Privacy** | Provider keys encrypted at rest, prompts never stored |
 | **Production Ready** | Battle-tested with automatic retries, timeouts, and error handling |
@@ -406,6 +407,7 @@ import {
   PromptInjectionError,
   PolicyViolationError,
   AbuseDetectedError,
+  PIIDetectedError,
   InsufficientCreditsError,
   AuthenticationError,
   RateLimitError,
@@ -432,6 +434,11 @@ try {
     // AI abuse detected (bot content, repetition, etc.)
     console.log("Abuse detected:", error.abuse_details.abuse_types);
     console.log("Confidence:", error.abuse_details.confidence);
+
+  } else if (error instanceof PIIDetectedError) {
+    // Personal information detected (when piiAction is 'block')
+    console.log("PII found:", error.pii_details.entity_types);
+    console.log("Entity count:", error.pii_details.entity_count);
 
   } else if (error instanceof InsufficientCreditsError) {
     // Not enough credits
@@ -617,6 +624,7 @@ interface ScanOptions {
   scanAction?: 'block' | 'allow_with_warning';   // Core injection behavior
   policyAction?: 'block' | 'allow_with_warning'; // Custom policy behavior
   abuseAction?: 'block' | 'allow_with_warning';  // Abuse detection (opt-in)
+  piiAction?: 'strip' | 'block' | 'allow_with_warning'; // PII detection (opt-in)
 }
 ```
 
@@ -651,6 +659,15 @@ interface ScanResponse {
   abuse_warnings?: AbuseWarning;
   // Present when intelligent routing is enabled
   routing?: { task_type: string; complexity: number; selected_model?: string; };
+  // Present when PII detection is enabled
+  pii_result?: PIIResult;
+}
+
+interface PIIResult {
+  detected: boolean;          // Whether PII was detected
+  entity_types: string[];     // Types of PII entities found (e.g., 'email', 'phone_number')
+  entity_count: number;       // Number of PII entities found
+  redacted_input?: string;    // Redacted text (only present when piiAction is 'strip')
 }
 ```
 
@@ -676,7 +693,9 @@ interface GenericClientConfig {
     scanAction?: 'block' | 'allow_with_warning';
     policyAction?: 'block' | 'allow_with_warning';
     abuseAction?: 'block' | 'allow_with_warning' | null;
+    piiAction?: 'strip' | 'block' | 'allow_with_warning' | null;
     routeAction?: 'disabled' | 'auto' | 'custom';
+    sensitivity?: 'low' | 'medium' | 'high';
     cacheResponse?: boolean;
     cacheTTL?: number;
   };
@@ -727,9 +746,10 @@ const headers = buildLockLLMHeaders({
   scanAction: 'block',
   policyAction: 'allow_with_warning',
   abuseAction: 'block',
+  piiAction: 'strip',
   routeAction: 'auto'
 });
-// Returns: { 'x-lockllm-scan-mode': 'combined', ... }
+// Returns: { 'x-lockllm-scan-mode': 'combined', 'x-lockllm-pii-action': 'strip', ... }
 ```
 
 **Parse proxy response metadata:**
@@ -743,6 +763,7 @@ console.log(metadata.safe);          // true/false
 console.log(metadata.scan_mode);     // 'combined'
 console.log(metadata.cache_status);  // 'HIT' or 'MISS'
 console.log(metadata.routing);       // { task_type, complexity, selected_model, ... }
+console.log(metadata.pii_detected);  // { detected, entity_types, entity_count, action }
 ```
 
 ## Error Types
@@ -758,6 +779,7 @@ LockLLMError (base)
 ├── PromptInjectionError (400)
 ├── PolicyViolationError (403)
 ├── AbuseDetectedError (400)
+├── PIIDetectedError (403)
 ├── InsufficientCreditsError (402)
 ├── UpstreamError (502)
 ├── ConfigurationError (400)
@@ -800,6 +822,13 @@ class AbuseDetectedError extends LockLLMError {
       resource_score: number;
       pattern_score: number;
     };
+  };
+}
+
+class PIIDetectedError extends LockLLMError {
+  pii_details: {
+    entity_types: string[];  // PII types found (e.g., 'email', 'phone_number')
+    entity_count: number;    // Number of PII entities detected
   };
 }
 
@@ -908,7 +937,8 @@ const result = await lockllm.scan(
   {
     scanAction: 'block',        // Block core injection attacks
     policyAction: 'allow_with_warning',  // Allow but warn on policy violations
-    abuseAction: 'block'        // Enable abuse detection (opt-in)
+    abuseAction: 'block',       // Enable abuse detection (opt-in)
+    piiAction: 'strip'          // Redact PII from input (opt-in)
   }
 );
 
@@ -920,6 +950,7 @@ const openai = createOpenAI({
     scanAction: 'block',            // Block injection attacks
     policyAction: 'block',          // Block policy violations
     abuseAction: 'allow_with_warning',  // Detect abuse, don't block
+    piiAction: 'strip',             // Automatically redact PII
     routeAction: 'auto'             // Enable intelligent routing
   }
 });
@@ -939,6 +970,7 @@ const openai = createOpenAI({
 - `scanAction` - Controls core injection detection: `'block'` | `'allow_with_warning'`
 - `policyAction` - Controls custom policy violations: `'block'` | `'allow_with_warning'`
 - `abuseAction` - Controls abuse detection (opt-in): `'block'` | `'allow_with_warning'` | `null`
+- `piiAction` - Controls PII detection (opt-in): `'strip'` | `'block'` | `'allow_with_warning'` | `null`
 - `routeAction` - Controls intelligent routing: `'disabled'` | `'auto'` | `'custom'`
 
 **Default Behavior (no headers):**
@@ -946,6 +978,7 @@ const openai = createOpenAI({
 - Scan Action: `allow_with_warning` (detect but don't block)
 - Policy Action: `allow_with_warning` (detect but don't block)
 - Abuse Action: `null` (disabled, opt-in only)
+- PII Action: `null` (disabled, opt-in only)
 - Route Action: `disabled` (no routing)
 
 See [examples/advanced-options.ts](examples/advanced-options.ts) for complete examples.
