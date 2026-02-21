@@ -56,3 +56,10 @@ export interface InsufficientCreditsErrorData extends LockLLMErrorData {
   current_balance: number;
   estimated_cost: number;
 }
+
+export interface PIIDetectedErrorData extends LockLLMErrorData {
+  pii_details: {
+    entity_types: string[];
+    entity_count: number;
+  };
+}

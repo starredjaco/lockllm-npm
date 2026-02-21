@@ -42,6 +42,16 @@ export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<strin
     headers['x-lockllm-route-action'] = options.routeAction;
   }
 
+  // PII action header (opt-in, null means disabled)
+  if (options?.piiAction !== undefined && options?.piiAction !== null) {
+    headers['x-lockllm-pii-action'] = options.piiAction;
+  }
+
+  // Sensitivity header (controls injection detection threshold)
+  if (options?.sensitivity) {
+    headers['x-lockllm-sensitivity'] = options.sensitivity;
+  }
+
   // Response caching control
   if (options?.cacheResponse === false) {
     headers['x-lockllm-cache-response'] = 'false';
@@ -75,6 +85,24 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
     provider: getHeader('x-lockllm-provider') || '',
     model: getHeader('x-lockllm-model') || undefined,
   };
+
+  // Parse sensitivity
+  const sensitivity = getHeader('x-lockllm-sensitivity');
+  if (sensitivity) {
+    metadata.sensitivity = sensitivity;
+  }
+
+  // Parse label
+  const label = getHeader('x-lockllm-label');
+  if (label) {
+    metadata.label = parseInt(label, 10);
+  }
+
+  // Parse blocked status
+  const blocked = getHeader('x-lockllm-blocked');
+  if (blocked === 'true') {
+    metadata.blocked = true;
+  }
 
   // Parse scan warning
   const scanWarning = getHeader('x-lockllm-scan-warning');
@@ -118,6 +146,21 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
     };
   }
 
+  // Parse PII detection
+  const piiDetected = getHeader('x-lockllm-pii-detected');
+  if (piiDetected) {
+    const piiTypes = getHeader('x-lockllm-pii-types');
+    const piiCount = getHeader('x-lockllm-pii-count');
+    const piiAction = getHeader('x-lockllm-pii-action');
+
+    metadata.pii_detected = {
+      detected: piiDetected === 'true',
+      entity_types: piiTypes || '',
+      entity_count: piiCount ? parseInt(piiCount, 10) : 0,
+      action: piiAction || '',
+    };
+  }
+
   // Parse routing metadata
   const routeEnabled = getHeader('x-lockllm-route-enabled');
   if (routeEnabled === 'true') {
@@ -129,6 +172,12 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
     const originalModel = getHeader('x-lockllm-original-model');
     const estimatedSavings = getHeader('x-lockllm-estimated-savings');
 
+    const estimatedOriginalCost = getHeader('x-lockllm-estimated-original-cost');
+    const estimatedRoutedCost = getHeader('x-lockllm-estimated-routed-cost');
+    const estimatedInputTokens = getHeader('x-lockllm-estimated-input-tokens');
+    const estimatedOutputTokens = getHeader('x-lockllm-estimated-output-tokens');
+    const routingFeeReason = getHeader('x-lockllm-routing-fee-reason');
+
     metadata.routing = {
       enabled: true,
       task_type: taskType || '',
@@ -138,6 +187,11 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
       original_provider: originalProvider || '',
       original_model: originalModel || '',
       estimated_savings: estimatedSavings ? parseFloat(estimatedSavings) : 0,
+      estimated_original_cost: estimatedOriginalCost ? parseFloat(estimatedOriginalCost) : 0,
+      estimated_routed_cost: estimatedRoutedCost ? parseFloat(estimatedRoutedCost) : 0,
+      estimated_input_tokens: estimatedInputTokens ? parseInt(estimatedInputTokens, 10) : 0,
+      estimated_output_tokens: estimatedOutputTokens ? parseInt(estimatedOutputTokens, 10) : 0,
+      routing_fee_reason: routingFeeReason || '',
     };
   }
 
@@ -181,6 +235,22 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
   const balanceAfter = getHeader('x-lockllm-balance-after');
   if (balanceAfter) {
     metadata.balance_after = parseFloat(balanceAfter);
+  }
+
+  // Parse base64-encoded detail fields
+  const scanDetail = getHeader('x-lockllm-scan-detail');
+  if (scanDetail) {
+    metadata.scan_detail = decodeDetailField(scanDetail);
+  }
+
+  const policyDetail = getHeader('x-lockllm-warning-detail');
+  if (policyDetail) {
+    metadata.policy_detail = decodeDetailField(policyDetail);
+  }
+
+  const abuseDetail = getHeader('x-lockllm-abuse-detail');
+  if (abuseDetail) {
+    metadata.abuse_detail = decodeDetailField(abuseDetail);
   }
 
   return metadata;

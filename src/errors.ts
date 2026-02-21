@@ -9,6 +9,7 @@ import type {
   PolicyViolationErrorData,
   AbuseDetectedErrorData,
   InsufficientCreditsErrorData,
+  PIIDetectedErrorData,
 } from './types/errors';
 
 /**
@@ -190,6 +191,28 @@ export class AbuseDetectedError extends LockLLMError {
 }
 
 /**
+ * Error thrown when PII (personal information) is detected and action is block
+ */
+export class PIIDetectedError extends LockLLMError {
+  public readonly pii_details: {
+    entity_types: string[];
+    entity_count: number;
+  };
+
+  constructor(data: PIIDetectedErrorData) {
+    super({
+      message: data.message,
+      type: 'lockllm_pii_error',
+      code: 'pii_detected',
+      status: 403,
+      requestId: data.requestId,
+    });
+    this.name = 'PIIDetectedError';
+    this.pii_details = data.pii_details;
+  }
+}
+
+/**
  * Error thrown when user has insufficient credits
  */
 export class InsufficientCreditsError extends LockLLMError {
@@ -264,6 +287,18 @@ export function parseError(response: any, requestId?: string): LockLLMError {
       status: 403,
       requestId: error.request_id || requestId,
       violated_policies: error.violated_policies,
+    });
+  }
+
+  // PII detected error
+  if (error.code === 'pii_detected' && error.pii_details) {
+    return new PIIDetectedError({
+      message: error.message,
+      type: error.type,
+      code: error.code,
+      status: 403,
+      requestId: error.request_id || requestId,
+      pii_details: error.pii_details,
     });
   }
 
