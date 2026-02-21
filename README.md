@@ -555,7 +555,7 @@ LockLLM Security Gateway
 3. **Error Response** - Detailed error returned with threat classification and confidence scores
 4. **Logging** - Incident automatically logged in [dashboard](https://www.lockllm.com/dashboard) for review and monitoring
 
-### Security & Privacy
+### Privacy & Security
 
 LockLLM is built with privacy and security as core principles. Your data stays yours.
 
