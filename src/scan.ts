@@ -89,6 +89,11 @@ export class ScanClient {
       headers['x-lockllm-abuse-action'] = options.abuseAction;
     }
 
+    // PII action: opt-in PII detection (null/undefined means disabled)
+    if (options?.piiAction !== undefined && options?.piiAction !== null) {
+      headers['x-lockllm-pii-action'] = options.piiAction;
+    }
+
     // Build request body
     const body: Record<string, any> = {
       input: request.input,

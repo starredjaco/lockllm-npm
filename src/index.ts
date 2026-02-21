@@ -18,6 +18,7 @@ export {
   PromptInjectionError,
   PolicyViolationError,
   AbuseDetectedError,
+  PIIDetectedError,
   InsufficientCreditsError,
   UpstreamError,
   ConfigurationError,
@@ -32,6 +33,7 @@ export type {
   ScanMode,
   ScanAction,
   RouteAction,
+  PIIAction,
   ProxyRequestOptions,
   ProxyResponseMetadata,
 } from './types/common';
@@ -44,6 +46,7 @@ export type {
   PolicyViolation,
   ScanWarning,
   AbuseWarning,
+  PIIResult,
 } from './types/scan';
 
 export type {
@@ -52,6 +55,7 @@ export type {
   PromptInjectionErrorData,
   PolicyViolationErrorData,
   AbuseDetectedErrorData,
+  PIIDetectedErrorData,
   InsufficientCreditsErrorData,
 } from './types/errors';
 

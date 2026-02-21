@@ -2,6 +2,8 @@
  * Common types used throughout the SDK
  */
 
+import type { Sensitivity } from './scan';
+
 export interface LockLLMConfig {
   /** Your LockLLM API key */
   apiKey: string;
@@ -59,6 +61,9 @@ export type ScanAction = 'block' | 'allow_with_warning';
 /** Routing action for intelligent model selection */
 export type RouteAction = 'disabled' | 'auto' | 'custom';
 
+/** PII detection action (opt-in) */
+export type PIIAction = 'strip' | 'block' | 'allow_with_warning';
+
 /** Proxy request options with advanced headers */
 export interface ProxyRequestOptions extends RequestOptions {
   /** Scan mode (default: combined) - Check both core security and custom policies */
@@ -71,6 +76,10 @@ export interface ProxyRequestOptions extends RequestOptions {
   abuseAction?: ScanAction | null;
   /** Routing action (default: disabled) - No intelligent routing unless explicitly enabled */
   routeAction?: RouteAction;
+  /** PII detection action (opt-in, default: null) - When null, PII detection is disabled */
+  piiAction?: PIIAction | null;
+  /** Detection sensitivity level (default: medium) - Controls injection detection threshold */
+  sensitivity?: Sensitivity;
   /** Response caching (default: enabled). Set false to disable. */
   cacheResponse?: boolean;
   /** Cache TTL in seconds (default: 3600) */
@@ -93,6 +102,12 @@ export interface ProxyResponseMetadata {
   provider: string;
   /** Model used */
   model?: string;
+  /** Detection sensitivity level used */
+  sensitivity?: string;
+  /** Safety label (0 = safe, 1 = unsafe) */
+  label?: number;
+  /** Whether the request was blocked */
+  blocked?: boolean;
   /** Scan warning details */
   scan_warning?: {
     injection_score: number;
@@ -111,6 +126,13 @@ export interface ProxyResponseMetadata {
     types: string;
     detail: string;
   };
+  /** PII detection metadata */
+  pii_detected?: {
+    detected: boolean;
+    entity_types: string;
+    entity_count: number;
+    action: string;
+  };
   /** Routing metadata */
   routing?: {
     enabled: boolean;
@@ -121,6 +143,11 @@ export interface ProxyResponseMetadata {
     original_provider: string;
     original_model: string;
     estimated_savings: number;
+    estimated_original_cost: number;
+    estimated_routed_cost: number;
+    estimated_input_tokens: number;
+    estimated_output_tokens: number;
+    routing_fee_reason: string;
   };
   /** Credits reserved for this request */
   credits_reserved?: number;
@@ -138,4 +165,10 @@ export interface ProxyResponseMetadata {
   tokens_saved?: number;
   /** Cost saved from cache hit */
   cost_saved?: number;
+  /** Decoded scan detail (from base64 header) */
+  scan_detail?: any;
+  /** Decoded policy warning detail (from base64 header) */
+  policy_detail?: any;
+  /** Decoded abuse detail (from base64 header) */
+  abuse_detail?: any;
 }

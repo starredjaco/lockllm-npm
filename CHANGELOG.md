@@ -1,5 +1,82 @@
 # Changelog
 
+## [1.2.0] - 2026-02-21
+
+### Added
+
+#### PII Detection and Redaction
+Protect sensitive personal information in prompts before they reach AI providers. When enabled, LockLLM detects emails, phone numbers, SSNs, credit card numbers, and other PII entities. Choose how to handle detected PII with the `piiAction` option:
+
+- **`block`** - Reject requests containing PII entirely. Throws a `PIIDetectedError` with entity types and count.
+- **`strip`** - Automatically redact PII from prompts before forwarding to the AI provider. The redacted text is available via `redacted_input` in the scan response.
+- **`allow_with_warning`** - Allow requests through but include PII metadata in the response for logging.
+
+PII detection is opt-in and disabled by default.
+
+```typescript
+// Block requests containing PII
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    piiAction: 'strip'  // Automatically redact PII before sending to AI
+  }
+});
+
+// Handle PII errors when using block mode
+try {
+  await openai.chat.completions.create({ ... });
+} catch (error) {
+  if (error instanceof PIIDetectedError) {
+    console.log(error.pii_details.entity_types);  // ['email', 'phone_number']
+    console.log(error.pii_details.entity_count);   // 3
+  }
+}
+```
+
+#### Scan API PII Support
+The scan endpoint now accepts a `piiAction` option alongside existing scan options:
+
+```typescript
+const result = await lockllm.scan(
+  { input: 'My email is test@example.com' },
+  { piiAction: 'block', scanAction: 'block' }
+);
+
+if (result.pii_result) {
+  console.log(result.pii_result.detected);       // true
+  console.log(result.pii_result.entity_types);    // ['email']
+  console.log(result.pii_result.entity_count);    // 1
+  console.log(result.pii_result.redacted_input);  // 'My email is [EMAIL]' (strip mode only)
+}
+```
+
+#### Enhanced Proxy Response Metadata
+Proxy responses now include additional fields for better observability:
+
+- **PII detection metadata** - `pii_detected` object with detection status, entity types, count, and action taken
+- **Blocked status** - `blocked` flag when a request was rejected by security checks
+- **Sensitivity and label** - `sensitivity` level used and numeric `label` (0 = safe, 1 = unsafe)
+- **Decoded detail fields** - `scan_detail`, `policy_detail`, and `abuse_detail` automatically decoded from base64 response headers
+- **Extended routing metadata** - `estimated_original_cost`, `estimated_routed_cost`, `estimated_input_tokens`, `estimated_output_tokens`, and `routing_fee_reason`
+
+#### Sensitivity Header Support
+You can now set the detection sensitivity level via `proxyOptions` or `buildLockLLMHeaders`:
+
+```typescript
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    sensitivity: 'high'  // 'low', 'medium', or 'high'
+  }
+});
+```
+
+### Notes
+- PII detection is opt-in. Existing integrations continue to work without changes.
+- All new types (`PIIAction`, `PIIResult`, `PIIDetectedError`, `PIIDetectedErrorData`) are fully exported for TypeScript users.
+
+---
+
 ## [1.1.0] - 2026-02-18
 
 ### Added

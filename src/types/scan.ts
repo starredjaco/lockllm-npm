@@ -3,6 +3,7 @@
  */
 
 import type { ScanResult } from './errors';
+import type { PIIAction } from './common';
 
 export type Sensitivity = 'low' | 'medium' | 'high';
 
@@ -23,6 +24,18 @@ export interface ScanRequest {
   chunk?: boolean;
 }
 
+/** PII detection result */
+export interface PIIResult {
+  /** Whether PII was detected */
+  detected: boolean;
+  /** Types of PII entities found (user-friendly names) */
+  entity_types: string[];
+  /** Number of PII entities found */
+  entity_count: number;
+  /** Redacted input text (only present when piiAction is "strip") */
+  redacted_input?: string;
+}
+
 /** Scan request options with action headers */
 export interface ScanOptions {
   /** Scan action for core injection (default: allow_with_warning) - Threats detected but not blocked */
@@ -31,6 +44,8 @@ export interface ScanOptions {
   policyAction?: ScanAction;
   /** Abuse detection action (opt-in, default: null) - When null, abuse detection is disabled */
   abuseAction?: ScanAction | null;
+  /** PII detection action (opt-in, default: null) - When null, PII detection is disabled */
+  piiAction?: PIIAction | null;
   /** Custom headers to include in the request */
   headers?: Record<string, string>;
   /** Request timeout in milliseconds */
@@ -142,4 +157,6 @@ export interface ScanResponse {
     /** Estimated cost */
     estimated_cost?: number;
   };
+  /** PII detection result (present when PII detection is enabled) */
+  pii_result?: PIIResult;
 }
