@@ -212,14 +212,14 @@ const openai = createOpenAI({
     scanMode: 'combined',
     scanAction: 'block',
     policyAction: 'block',
-    routeAction: 'auto',        // Enable intelligent routing
+    routeAction: 'auto',        // Enable smart routing
     cacheResponse: true,         // Enable response caching
     cacheTTL: 3600               // Cache for 1 hour
   }
 });
 ```
 
-#### Intelligent Routing
+#### Smart Routing
 Let LockLLM automatically select the best model for each request based on task type and complexity. Set `routeAction: 'auto'` to enable, or `routeAction: 'custom'` to use your own routing rules from the dashboard.
 
 #### Response Caching

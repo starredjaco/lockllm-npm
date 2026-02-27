@@ -12,7 +12,7 @@ import type { ProxyRequestOptions, ProxyResponseMetadata } from '../types/common
  * - Scan Action: allow_with_warning (detect threats but don't block)
  * - Policy Action: allow_with_warning (detect violations but don't block)
  * - Abuse Action: null (abuse detection disabled, opt-in only)
- * - Route Action: disabled (no intelligent routing)
+ * - Route Action: disabled (no smart routing)
  */
 export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<string, string> {
   const headers: Record<string, string> = {};
@@ -37,7 +37,7 @@ export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<strin
     headers['x-lockllm-abuse-action'] = options.abuseAction;
   }
 
-  // Route action header (controls intelligent routing)
+  // Route action header (controls smart routing)
   if (options?.routeAction) {
     headers['x-lockllm-route-action'] = options.routeAction;
   }

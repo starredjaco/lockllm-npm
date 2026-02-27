@@ -77,7 +77,7 @@ export interface ProxyRequestOptions extends RequestOptions {
   policyAction?: ScanAction;
   /** Abuse detection action (opt-in, default: null) - When null, abuse detection is disabled */
   abuseAction?: ScanAction | null;
-  /** Routing action (default: disabled) - No intelligent routing unless explicitly enabled */
+  /** Routing action (default: disabled) - No smart routing unless explicitly enabled */
   routeAction?: RouteAction;
   /** PII detection action (opt-in, default: null) - When null, PII detection is disabled */
   piiAction?: PIIAction | null;

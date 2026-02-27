@@ -81,7 +81,7 @@ LockLLM provides production-ready AI security that integrates seamlessly into yo
 | **Custom Endpoints** | Configure custom URLs for any provider (self-hosted, Azure, private clouds) |
 | **Custom Content Policies** | Define your own content rules in the dashboard and enforce them automatically across all providers |
 | **AI Abuse Detection** | Detect bot-generated content, repetition attacks, and resource exhaustion from your end-users |
-| **Intelligent Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
+| **Smart Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
 | **PII Detection & Redaction** | Detect and automatically redact emails, phone numbers, SSNs, credit cards, and other personal information before they reach AI providers |
 | **Prompt Compression** | Reduce token usage with TOON (JSON-to-compact-notation, free), Compact (advanced compression, $0.0001/use), or Combined (TOON then Compact for maximum reduction, $0.0001/use) methods |
 | **Response Caching** | Cache identical LLM responses to reduce costs and latency on repeated queries |
@@ -660,7 +660,7 @@ interface ScanResponse {
   scan_warning?: ScanWarning;
   // Present when abuse detection is enabled and abuse found
   abuse_warnings?: AbuseWarning;
-  // Present when intelligent routing is enabled
+  // Present when smart routing is enabled
   routing?: { task_type: string; complexity: number; selected_model?: string; };
   // Present when PII detection is enabled
   pii_result?: PIIResult;
@@ -971,7 +971,7 @@ const openai = createOpenAI({
     piiAction: 'strip',             // Automatically redact PII
     compressionAction: 'compact',   // Compress prompts (free: 'toon', paid: 'compact' | 'combined')
     compressionRate: 0.5,           // Compression rate 0.3-0.7 (compact/combined only)
-    routeAction: 'auto'             // Enable intelligent routing
+    routeAction: 'auto'             // Enable smart routing
   }
 });
 ```
@@ -993,7 +993,7 @@ const openai = createOpenAI({
 - `piiAction` - Controls PII detection (opt-in): `'strip'` | `'block'` | `'allow_with_warning'` | `null`
 - `compressionAction` - Controls prompt compression (opt-in): `'toon'` | `'compact'` | `'combined'` | `null`
 - `compressionRate` - Compression rate for compact/combined method: `0.3` - `0.7` (default: `0.5`)
-- `routeAction` - Controls intelligent routing: `'disabled'` | `'auto'` | `'custom'`
+- `routeAction` - Controls smart routing: `'disabled'` | `'auto'` | `'custom'`
 
 **Default Behavior (no headers):**
 - Scan Mode: `combined` (check both core + policies)
