@@ -74,7 +74,6 @@ console.log(metadata.compression);
 - All new types (`CompressionAction`, `CompressionResult`) are fully exported for TypeScript users.
 - Security scanning always runs on the original (uncompressed) text for maximum protection.
 - TOON compression is free. Compact and Combined cost $0.0001 per request.
-- Compression results are cached for 30 minutes to avoid redundant processing.
 
 ---
 
