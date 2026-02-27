@@ -34,6 +34,7 @@ export type {
   ScanAction,
   RouteAction,
   PIIAction,
+  CompressionAction,
   ProxyRequestOptions,
   ProxyResponseMetadata,
 } from './types/common';
@@ -47,6 +48,7 @@ export type {
   ScanWarning,
   AbuseWarning,
   PIIResult,
+  CompressionResult,
 } from './types/scan';
 
 export type {
