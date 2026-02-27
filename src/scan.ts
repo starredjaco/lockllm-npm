@@ -94,6 +94,16 @@ export class ScanClient {
       headers['x-lockllm-pii-action'] = options.piiAction;
     }
 
+    // Compression action: opt-in prompt compression (null/undefined means disabled)
+    if (options?.compressionAction !== undefined && options?.compressionAction !== null) {
+      headers['x-lockllm-compression'] = options.compressionAction;
+    }
+
+    // Compression rate for compact method
+    if (options?.compressionRate !== undefined) {
+      headers['x-lockllm-compression-rate'] = String(options.compressionRate);
+    }
+
     // Build request body
     const body: Record<string, any> = {
       input: request.input,

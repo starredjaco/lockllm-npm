@@ -64,6 +64,9 @@ export type RouteAction = 'disabled' | 'auto' | 'custom';
 /** PII detection action (opt-in) */
 export type PIIAction = 'strip' | 'block' | 'allow_with_warning';
 
+/** Prompt compression method (opt-in) */
+export type CompressionAction = 'toon' | 'compact' | 'combined';
+
 /** Proxy request options with advanced headers */
 export interface ProxyRequestOptions extends RequestOptions {
   /** Scan mode (default: combined) - Check both core security and custom policies */
@@ -74,7 +77,7 @@ export interface ProxyRequestOptions extends RequestOptions {
   policyAction?: ScanAction;
   /** Abuse detection action (opt-in, default: null) - When null, abuse detection is disabled */
   abuseAction?: ScanAction | null;
-  /** Routing action (default: disabled) - No intelligent routing unless explicitly enabled */
+  /** Routing action (default: disabled) - No smart routing unless explicitly enabled */
   routeAction?: RouteAction;
   /** PII detection action (opt-in, default: null) - When null, PII detection is disabled */
   piiAction?: PIIAction | null;
@@ -84,6 +87,12 @@ export interface ProxyRequestOptions extends RequestOptions {
   cacheResponse?: boolean;
   /** Cache TTL in seconds (default: 3600) */
   cacheTTL?: number;
+  /** Prompt compression method (opt-in, default: null) - When null, compression is disabled.
+   *  "toon" converts JSON to compact notation (free). "compact" uses advanced compression ($0.0001/use).
+   *  "combined" applies TOON first then Compact for maximum compression ($0.0001/use). */
+  compressionAction?: CompressionAction | null;
+  /** Compression rate for compact method (0.3-0.7, default: 0.5) - Lower = more compression */
+  compressionRate?: number;
 }
 
 /** Response metadata from proxy */
@@ -171,4 +180,10 @@ export interface ProxyResponseMetadata {
   policy_detail?: any;
   /** Decoded abuse detail (from base64 header) */
   abuse_detail?: any;
+  /** Compression metadata */
+  compression?: {
+    method: string;
+    applied: boolean;
+    ratio: number;
+  };
 }

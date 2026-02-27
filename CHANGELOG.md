@@ -1,5 +1,83 @@
 # Changelog
 
+## [1.3.0] - 2026-02-27
+
+### Added
+
+#### Prompt Compression
+Reduce token usage and costs by compressing prompts before sending them to AI providers. Three compression methods are available:
+
+- **`toon`** (Free) - Converts JSON data to a compact notation format, achieving 30-60% token savings on structured data. Only activates when the prompt starts with `{` or `[` (pure JSON). Non-JSON input is returned unchanged.
+- **`compact`** ($0.0001/use) - Advanced compression that intelligently reduces prompt length while preserving meaning. Works on any text type. Supports configurable compression rate (0.3-0.7, default 0.5).
+- **`combined`** ($0.0001/use) - Applies TOON first, then runs Compact on the result for maximum token reduction. For non-JSON input, behaves identically to `compact`. Best when you want maximum compression.
+
+Prompt compression is opt-in and disabled by default. Security scanning always runs on the original text before compression is applied.
+
+**Proxy mode:**
+```typescript
+// TOON - compress structured JSON prompts (free)
+const openai = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    compressionAction: 'toon'
+  }
+});
+
+// Compact - compress any text with configurable rate
+const openai2 = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    compressionAction: 'compact',
+    compressionRate: 0.4  // Lower = more aggressive compression (0.3-0.7, default: 0.5)
+  }
+});
+
+// Combined - TOON then Compact for maximum compression
+const openai3 = createOpenAI({
+  apiKey: process.env.LOCKLLM_API_KEY,
+  proxyOptions: {
+    compressionAction: 'combined',
+    compressionRate: 0.5
+  }
+});
+```
+
+**Scan API:**
+```typescript
+const result = await lockllm.scan(
+  { input: '{"users": [{"name": "Alice"}, {"name": "Bob"}]}' },
+  { compressionAction: 'combined', compressionRate: 0.5 }
+);
+
+if (result.compression_result) {
+  console.log(result.compression_result.method);            // 'combined'
+  console.log(result.compression_result.compressed_input);   // Compressed text
+  console.log(result.compression_result.compression_ratio);  // e.g., 0.35
+}
+```
+
+#### Compression Response Metadata
+Proxy responses now include compression metadata in response headers:
+- `X-LockLLM-Compression-Method` - Compression method used (`toon`, `compact`, or `combined`)
+- `X-LockLLM-Compression-Applied` - Whether compression was applied (`true` or `false`)
+- `X-LockLLM-Compression-Ratio` - Ratio of compressed to original length (lower = better)
+
+Parse these with `parseProxyMetadata()`:
+```typescript
+const metadata = parseProxyMetadata(response.headers);
+console.log(metadata.compression);
+// { method: 'combined', applied: true, ratio: 0.35 }
+```
+
+### Notes
+- Prompt compression is opt-in. Existing integrations continue to work without changes.
+- All new types (`CompressionAction`, `CompressionResult`) are fully exported for TypeScript users.
+- Security scanning always runs on the original (uncompressed) text for maximum protection.
+- TOON compression is free. Compact and Combined cost $0.0001 per request.
+- Compression results are cached for 30 minutes to avoid redundant processing.
+
+---
+
 ## [1.2.0] - 2026-02-21
 
 ### Added
@@ -134,14 +212,14 @@ const openai = createOpenAI({
     scanMode: 'combined',
     scanAction: 'block',
     policyAction: 'block',
-    routeAction: 'auto',        // Enable intelligent routing
+    routeAction: 'auto',        // Enable smart routing
     cacheResponse: true,         // Enable response caching
     cacheTTL: 3600               // Cache for 1 hour
   }
 });
 ```
 
-#### Intelligent Routing
+#### Smart Routing
 Let LockLLM automatically select the best model for each request based on task type and complexity. Set `routeAction: 'auto'` to enable, or `routeAction: 'custom'` to use your own routing rules from the dashboard.
 
 #### Response Caching

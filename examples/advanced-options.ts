@@ -87,7 +87,7 @@ async function proxyWithAdvancedOptions() {
       scanAction: 'block', // Block injection attacks
       policyAction: 'block', // Block policy violations
       abuseAction: 'allow_with_warning', // Detect abuse but don't block
-      routeAction: 'auto', // Enable intelligent routing
+      routeAction: 'auto', // Enable smart routing
     },
   });
 
@@ -139,7 +139,7 @@ async function defaultBehavior() {
    * - Scan Action: allow_with_warning (detect threats but don't block)
    * - Policy Action: allow_with_warning (detect violations but don't block)
    * - Abuse Action: null (abuse detection disabled, opt-in only)
-   * - Route Action: disabled (no intelligent routing)
+   * - Route Action: disabled (no smart routing)
    */
 
   try {

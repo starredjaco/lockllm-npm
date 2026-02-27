@@ -12,7 +12,7 @@ import type { ProxyRequestOptions, ProxyResponseMetadata } from '../types/common
  * - Scan Action: allow_with_warning (detect threats but don't block)
  * - Policy Action: allow_with_warning (detect violations but don't block)
  * - Abuse Action: null (abuse detection disabled, opt-in only)
- * - Route Action: disabled (no intelligent routing)
+ * - Route Action: disabled (no smart routing)
  */
 export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<string, string> {
   const headers: Record<string, string> = {};
@@ -37,7 +37,7 @@ export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<strin
     headers['x-lockllm-abuse-action'] = options.abuseAction;
   }
 
-  // Route action header (controls intelligent routing)
+  // Route action header (controls smart routing)
   if (options?.routeAction) {
     headers['x-lockllm-route-action'] = options.routeAction;
   }
@@ -60,6 +60,16 @@ export function buildLockLLMHeaders(options?: ProxyRequestOptions): Record<strin
   // Cache TTL in seconds
   if (options?.cacheTTL !== undefined) {
     headers['x-lockllm-cache-ttl'] = String(options.cacheTTL);
+  }
+
+  // Compression header (opt-in, null means disabled)
+  if (options?.compressionAction !== undefined && options?.compressionAction !== null) {
+    headers['x-lockllm-compression'] = options.compressionAction;
+  }
+
+  // Compression rate (compact method only, 0.3-0.7)
+  if (options?.compressionRate !== undefined) {
+    headers['x-lockllm-compression-rate'] = String(options.compressionRate);
   }
 
   return headers;
@@ -235,6 +245,19 @@ export function parseProxyMetadata(headers: Headers | Record<string, string>): P
   const balanceAfter = getHeader('x-lockllm-balance-after');
   if (balanceAfter) {
     metadata.balance_after = parseFloat(balanceAfter);
+  }
+
+  // Parse compression metadata
+  const compressionMethod = getHeader('x-lockllm-compression-method');
+  if (compressionMethod) {
+    const compressionApplied = getHeader('x-lockllm-compression-applied');
+    const compressionRatio = getHeader('x-lockllm-compression-ratio');
+
+    metadata.compression = {
+      method: compressionMethod,
+      applied: compressionApplied === 'true',
+      ratio: compressionRatio ? parseFloat(compressionRatio) : 1.0,
+    };
   }
 
   // Parse base64-encoded detail fields

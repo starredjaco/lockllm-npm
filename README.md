@@ -81,8 +81,9 @@ LockLLM provides production-ready AI security that integrates seamlessly into yo
 | **Custom Endpoints** | Configure custom URLs for any provider (self-hosted, Azure, private clouds) |
 | **Custom Content Policies** | Define your own content rules in the dashboard and enforce them automatically across all providers |
 | **AI Abuse Detection** | Detect bot-generated content, repetition attacks, and resource exhaustion from your end-users |
-| **Intelligent Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
+| **Smart Routing** | Automatically select the optimal model for each request based on task type and complexity to save costs |
 | **PII Detection & Redaction** | Detect and automatically redact emails, phone numbers, SSNs, credit cards, and other personal information before they reach AI providers |
+| **Prompt Compression** | Reduce token usage with TOON (JSON-to-compact-notation, free), Compact (advanced compression, $0.0001/use), or Combined (TOON then Compact for maximum reduction, $0.0001/use) methods |
 | **Response Caching** | Cache identical LLM responses to reduce costs and latency on repeated queries |
 | **Enterprise Privacy** | Provider keys encrypted at rest, prompts never stored |
 | **Production Ready** | Battle-tested with automatic retries, timeouts, and error handling |
@@ -625,6 +626,8 @@ interface ScanOptions {
   policyAction?: 'block' | 'allow_with_warning'; // Custom policy behavior
   abuseAction?: 'block' | 'allow_with_warning';  // Abuse detection (opt-in)
   piiAction?: 'strip' | 'block' | 'allow_with_warning'; // PII detection (opt-in)
+  compressionAction?: 'toon' | 'compact' | 'combined'; // Prompt compression (opt-in)
+  compressionRate?: number;                            // Compact/combined compression rate (0.3-0.7)
 }
 ```
 
@@ -657,10 +660,20 @@ interface ScanResponse {
   scan_warning?: ScanWarning;
   // Present when abuse detection is enabled and abuse found
   abuse_warnings?: AbuseWarning;
-  // Present when intelligent routing is enabled
+  // Present when smart routing is enabled
   routing?: { task_type: string; complexity: number; selected_model?: string; };
   // Present when PII detection is enabled
   pii_result?: PIIResult;
+  // Present when prompt compression is enabled
+  compression_result?: CompressionResult;
+}
+
+interface CompressionResult {
+  method: 'toon' | 'compact' | 'combined'; // Compression method used
+  compressed_input: string;                 // The compressed text
+  original_length: number;                  // Original text length
+  compressed_length: number;                // Compressed text length
+  compression_ratio: number;                // Ratio (compressed/original, lower = better)
 }
 
 interface PIIResult {
@@ -694,6 +707,8 @@ interface GenericClientConfig {
     policyAction?: 'block' | 'allow_with_warning';
     abuseAction?: 'block' | 'allow_with_warning' | null;
     piiAction?: 'strip' | 'block' | 'allow_with_warning' | null;
+    compressionAction?: 'toon' | 'compact' | 'combined' | null;
+    compressionRate?: number;
     routeAction?: 'disabled' | 'auto' | 'custom';
     sensitivity?: 'low' | 'medium' | 'high';
     cacheResponse?: boolean;
@@ -747,9 +762,10 @@ const headers = buildLockLLMHeaders({
   policyAction: 'allow_with_warning',
   abuseAction: 'block',
   piiAction: 'strip',
+  compressionAction: 'toon',
   routeAction: 'auto'
 });
-// Returns: { 'x-lockllm-scan-mode': 'combined', 'x-lockllm-pii-action': 'strip', ... }
+// Returns: { 'x-lockllm-scan-mode': 'combined', 'x-lockllm-compression': 'toon', ... }
 ```
 
 **Parse proxy response metadata:**
@@ -764,6 +780,7 @@ console.log(metadata.scan_mode);     // 'combined'
 console.log(metadata.cache_status);  // 'HIT' or 'MISS'
 console.log(metadata.routing);       // { task_type, complexity, selected_model, ... }
 console.log(metadata.pii_detected);  // { detected, entity_types, entity_count, action }
+console.log(metadata.compression);   // { method, applied, ratio }
 ```
 
 ## Error Types
@@ -872,16 +889,16 @@ LockLLM uses a 10-tier progressive system based on monthly usage. Higher tiers u
 
 | Tier | Max RPM | Monthly Spending Requirement |
 |------|---------|----------------------------|
-| **Tier 1** (Free) | 30 RPM | $0 |
-| **Tier 2** | 50 RPM | $10/month |
-| **Tier 3** | 100 RPM | $50/month |
-| **Tier 4** | 200 RPM | $100/month |
-| **Tier 5** | 500 RPM | $250/month |
-| **Tier 6** | 1,000 RPM | $500/month |
-| **Tier 7** | 2,000 RPM | $1,000/month |
-| **Tier 8** | 5,000 RPM | $3,000/month |
-| **Tier 9** | 10,000 RPM | $5,000/month |
-| **Tier 10** | 20,000 RPM | $10,000/month |
+| **Tier 1** (Free) | 300 RPM | $0 |
+| **Tier 2** | 500 RPM | $10/month |
+| **Tier 3** | 1,000 RPM | $50/month |
+| **Tier 4** | 2,000 RPM | $100/month |
+| **Tier 5** | 5,000 RPM | $250/month |
+| **Tier 6** | 10,000 RPM | $500/month |
+| **Tier 7** | 20,000 RPM | $1,000/month |
+| **Tier 8** | 50,000 RPM | $3,000/month |
+| **Tier 9** | 100,000 RPM | $5,000/month |
+| **Tier 10** | 200,000 RPM | $10,000/month |
 
 See [pricing](https://www.lockllm.com/pricing) for full tier details and free monthly credits.
 
@@ -938,7 +955,8 @@ const result = await lockllm.scan(
     scanAction: 'block',        // Block core injection attacks
     policyAction: 'allow_with_warning',  // Allow but warn on policy violations
     abuseAction: 'block',       // Enable abuse detection (opt-in)
-    piiAction: 'strip'          // Redact PII from input (opt-in)
+    piiAction: 'strip',         // Redact PII from input (opt-in)
+    compressionAction: 'combined' // Compress prompts (opt-in: 'toon' | 'compact' | 'combined')
   }
 );
 
@@ -951,7 +969,9 @@ const openai = createOpenAI({
     policyAction: 'block',          // Block policy violations
     abuseAction: 'allow_with_warning',  // Detect abuse, don't block
     piiAction: 'strip',             // Automatically redact PII
-    routeAction: 'auto'             // Enable intelligent routing
+    compressionAction: 'compact',   // Compress prompts (free: 'toon', paid: 'compact' | 'combined')
+    compressionRate: 0.5,           // Compression rate 0.3-0.7 (compact/combined only)
+    routeAction: 'auto'             // Enable smart routing
   }
 });
 ```
@@ -971,7 +991,9 @@ const openai = createOpenAI({
 - `policyAction` - Controls custom policy violations: `'block'` | `'allow_with_warning'`
 - `abuseAction` - Controls abuse detection (opt-in): `'block'` | `'allow_with_warning'` | `null`
 - `piiAction` - Controls PII detection (opt-in): `'strip'` | `'block'` | `'allow_with_warning'` | `null`
-- `routeAction` - Controls intelligent routing: `'disabled'` | `'auto'` | `'custom'`
+- `compressionAction` - Controls prompt compression (opt-in): `'toon'` | `'compact'` | `'combined'` | `null`
+- `compressionRate` - Compression rate for compact/combined method: `0.3` - `0.7` (default: `0.5`)
+- `routeAction` - Controls smart routing: `'disabled'` | `'auto'` | `'custom'`
 
 **Default Behavior (no headers):**
 - Scan Mode: `combined` (check both core + policies)
@@ -979,6 +1001,7 @@ const openai = createOpenAI({
 - Policy Action: `allow_with_warning` (detect but don't block)
 - Abuse Action: `null` (disabled, opt-in only)
 - PII Action: `null` (disabled, opt-in only)
+- Compression Action: `null` (disabled, opt-in only)
 - Route Action: `disabled` (no routing)
 
 See [examples/advanced-options.ts](examples/advanced-options.ts) for complete examples.

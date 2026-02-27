@@ -3,7 +3,7 @@
  */
 
 import type { ScanResult } from './errors';
-import type { PIIAction } from './common';
+import type { PIIAction, CompressionAction } from './common';
 
 export type Sensitivity = 'low' | 'medium' | 'high';
 
@@ -22,6 +22,20 @@ export interface ScanRequest {
   mode?: ScanMode;
   /** Force chunking for large inputs */
   chunk?: boolean;
+}
+
+/** Compression result */
+export interface CompressionResult {
+  /** Compression method used */
+  method: 'toon' | 'compact' | 'combined';
+  /** Compressed text */
+  compressed_input: string;
+  /** Original text length */
+  original_length: number;
+  /** Compressed text length */
+  compressed_length: number;
+  /** Compression ratio (compressed/original, lower = better) */
+  compression_ratio: number;
 }
 
 /** PII detection result */
@@ -46,6 +60,12 @@ export interface ScanOptions {
   abuseAction?: ScanAction | null;
   /** PII detection action (opt-in, default: null) - When null, PII detection is disabled */
   piiAction?: PIIAction | null;
+  /** Prompt compression method (opt-in, default: null) - When null, compression is disabled.
+   *  "toon" converts JSON to compact notation (free). "compact" uses advanced compression ($0.0001/use).
+   *  "combined" applies TOON first then Compact for maximum compression ($0.0001/use). */
+  compressionAction?: CompressionAction | null;
+  /** Compression rate for compact method (0.3-0.7, default: 0.5) - Lower = more compression */
+  compressionRate?: number;
   /** Custom headers to include in the request */
   headers?: Record<string, string>;
   /** Request timeout in milliseconds */
@@ -159,4 +179,6 @@ export interface ScanResponse {
   };
   /** PII detection result (present when PII detection is enabled) */
   pii_result?: PIIResult;
+  /** Compression result (present when compression is enabled) */
+  compression_result?: CompressionResult;
 }
